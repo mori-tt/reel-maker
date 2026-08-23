@@ -8,7 +8,7 @@
 - HEIC / HEIFをブラウザ内でJPEGへ変換
 - 画像の並べ替え・削除
 - タイトルとCTAの編集
-- Ollama画像対応モデルによるタイトル・CTA提案
+- Chrome組み込みAIまたはOllama画像対応モデルによるタイトル・CTA提案
 - フェード＋ズーム付き9:16プレビュー
 - 1080×1920 WebM動画の生成・ダウンロード
 
@@ -21,9 +21,16 @@ npm run dev
 
 ローカル開発時のOllama接続先は `http://localhost:11434` です。
 
-## Ollama AIモード
+## AIコピー提案
 
-AIモードは画像をOllamaへ渡すため、**vision capabilityを持つ画像対応モデル**が必要です。アプリの「接続とモデルを確認」で、登録モデルと画像対応状況を確認できます。
+画面で次の2方式を選択できます。
+
+- **Chrome AI**: Chrome Prompt APIの画像入力を使い、画像・タイトル・CTAを端末内で処理します。「Chrome AIの利用状況を確認」で対応状況を確認できます。対応Chrome、端末要件、組み込みモデルの準備が必要です。
+- **Ollama**: 指定したOllama画像対応モデルへ画像を渡して提案を生成します。
+
+### Ollama
+
+Ollama方式は画像をOllamaへ渡すため、**vision capabilityを持つ画像対応モデル**が必要です。アプリの「接続とモデルを確認」で、登録モデルと画像対応状況を確認できます。
 
 現在このMacにある `gemma4:e2b` と `gemma4:e2b-32k` は、API上のcapabilitiesが `completion / tools / thinking` であり、visionを持ちません。そのためテキスト生成はできますが、画像を見たCTA提案には使用できません。
 

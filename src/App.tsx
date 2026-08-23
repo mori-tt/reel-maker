@@ -2,6 +2,8 @@ import { useEffect, useRef, useState } from 'react'
 import type { ChangeEvent } from 'react'
 import { generateAiCopy, initialOllamaUrl, isHeicFile, listOllamaModels, supportsVision } from './ai'
 import type { OllamaModel } from './ai'
+import { chromeAiAvailabilityMessage, generateChromeAiCopy, getChromeAiAvailability } from './chrome-ai'
+import type { ChromeAiAvailability } from './chrome-ai'
 import { normalizeImageFile } from './image'
 import { getFrameState, getMimeType, moveItem } from './reel'
 
@@ -52,6 +54,8 @@ export default function App() {
   const [loadingImages, setLoadingImages] = useState(false)
   const [notice, setNotice] = useState('')
   const [aiEnabled, setAiEnabled] = useState(false)
+  const [aiProvider, setAiProvider] = useState<'chrome' | 'ollama'>(() => localStorage.getItem('aiProvider') === 'ollama' ? 'ollama' : 'chrome')
+  const [chromeAiStatus, setChromeAiStatus] = useState<ChromeAiAvailability | null>(null)
   const [ollamaUrl, setOllamaUrl] = useState(() => initialOllamaUrl(localStorage.getItem('ollamaUrl')))
   const [ollamaModel, setOllamaModel] = useState(() => localStorage.getItem('ollamaModel') || 'gemma4:e2b')
   const [ollamaModels, setOllamaModels] = useState<OllamaModel[]>([])
@@ -109,6 +113,13 @@ export default function App() {
     return current.filter((_, i) => i !== index)
   })
 
+  const checkChromeAi = async () => {
+    setNotice('Chrome AIの利用状況を確認しています…')
+    const status = await getChromeAiAvailability()
+    setChromeAiStatus(status)
+    setNotice(chromeAiAvailabilityMessage(status))
+  }
+
   const checkOllama = async () => {
     setNotice('Ollamaへ接続しています…')
     try {
@@ -122,22 +133,31 @@ export default function App() {
     } catch (error) { setNotice(error instanceof Error ? error.message : 'Ollamaへ接続できませんでした。') }
   }
 
-  const askOllama = async () => {
+  const askAi = async () => {
     if (!slides.length) return
     setAiLoading(true)
     setNotice('')
-    localStorage.setItem('ollamaUrl', ollamaUrl)
-    localStorage.setItem('ollamaModel', ollamaModel)
+    localStorage.setItem('aiProvider', aiProvider)
     try {
-      const knownModel = ollamaModels.find(model => model.name === ollamaModel)
-      if (knownModel && !supportsVision(knownModel)) throw new Error(`「${ollamaModel}」は画像入力に対応していません。`)
-      const copy = await generateAiCopy({ baseUrl: ollamaUrl, model: ollamaModel, image: slides[0].blob, direction: aiDirection })
+      const copy = aiProvider === 'chrome'
+        ? await generateChromeAiCopy({
+            image: slides[0].blob,
+            direction: aiDirection,
+            onDownloadProgress: progress => setNotice(`Chrome AIモデルを準備中… ${progress}%`),
+          })
+        : await (async () => {
+            localStorage.setItem('ollamaUrl', ollamaUrl)
+            localStorage.setItem('ollamaModel', ollamaModel)
+            const knownModel = ollamaModels.find(model => model.name === ollamaModel)
+            if (knownModel && !supportsVision(knownModel)) throw new Error(`「${ollamaModel}」は画像入力に対応していません。`)
+            return generateAiCopy({ baseUrl: ollamaUrl, model: ollamaModel, image: slides[0].blob, direction: aiDirection })
+          })()
       setTitle(copy.title)
       setCta(copy.cta)
-      setNotice('AIの提案をタイトルとCTAに反映しました。')
+      setNotice(`${aiProvider === 'chrome' ? 'Chrome AI' : 'Ollama'}の提案をタイトルとCTAに反映しました。`)
     } catch (error) {
       const message = error instanceof Error ? error.message : 'AIモードでエラーが発生しました。'
-      setNotice(`${message} Ollamaの起動、モデル名、OLLAMA_ORIGINSを確認してください。`)
+      setNotice(aiProvider === 'ollama' ? `${message} Ollamaの起動、モデル名、OLLAMA_ORIGINSを確認してください。` : message)
     } finally { setAiLoading(false) }
   }
 
@@ -188,8 +208,12 @@ export default function App() {
           </article>)}</div>}
           <div className="fields"><label>タイトル<input value={title} maxLength={28} onChange={e => setTitle(e.target.value)} /></label><label>CTA<input value={cta} maxLength={32} onChange={e => setCta(e.target.value)} /></label><label>1枚の表示時間<div className="range-row"><input type="range" min="2" max="6" step="1" value={seconds} onChange={e => setSeconds(Number(e.target.value))}/><output>{seconds}秒</output></div></label></div>
           <section className="ai-card">
-            <div className="ai-card-head"><div><span className="ai-spark">✦</span><div><h3>Ollama AIモード</h3><p>画像を見てタイトルとCTAを提案</p></div></div><button className={`toggle ${aiEnabled ? 'on' : ''}`} aria-pressed={aiEnabled} aria-label="AIモード" onClick={() => setAiEnabled(!aiEnabled)}><span /></button></div>
-            {aiEnabled && <div className="ai-fields"><div className="ai-grid"><label>接続先<input value={ollamaUrl} onChange={e => setOllamaUrl(e.target.value)} /></label><label>モデル<input list="ollama-models" value={ollamaModel} onChange={e => setOllamaModel(e.target.value)} /><datalist id="ollama-models">{ollamaModels.map(model => <option key={model.name} value={model.name}>{supportsVision(model) ? '画像対応' : 'テキストのみ'}</option>)}</datalist></label></div><button className="ai-check" onClick={checkOllama}>接続とモデルを確認</button><label>コピーの方向性<input value={aiDirection} onChange={e => setAiDirection(e.target.value)} /></label><button className="ai-generate" disabled={!slides.length || !ollamaModel.trim() || aiLoading} onClick={askOllama}>{aiLoading ? 'AIが考えています…' : '✦ AIにコピーを提案してもらう'}</button><small>{ollamaUrl.startsWith('/api/ollama') ? 'Vercelの /api/ollama 経由で接続します。OLLAMA_BASE_URLの設定が必要です。' : '最初の画像を指定したOllamaへ送ります。外部クラウドには送信しません。'}</small></div>}
+            <div className="ai-card-head"><div><span className="ai-spark">✦</span><div><h3>AIコピー提案</h3><p>画像を見てタイトルとCTAを提案</p></div></div><button className={`toggle ${aiEnabled ? 'on' : ''}`} aria-pressed={aiEnabled} aria-label="AIモード" onClick={() => setAiEnabled(!aiEnabled)}><span /></button></div>
+            {aiEnabled && <div className="ai-fields">
+              <div className="provider-tabs" role="group" aria-label="AIプロバイダー"><button className={aiProvider === 'chrome' ? 'active' : ''} aria-pressed={aiProvider === 'chrome'} onClick={() => setAiProvider('chrome')}>Chrome AI</button><button className={aiProvider === 'ollama' ? 'active' : ''} aria-pressed={aiProvider === 'ollama'} onClick={() => setAiProvider('ollama')}>Ollama</button></div>
+              {aiProvider === 'chrome' ? <><button className="ai-check" onClick={checkChromeAi}>Chrome AIの利用状況を確認</button>{chromeAiStatus && <small className="ai-status">{chromeAiAvailabilityMessage(chromeAiStatus)}</small>}</> : <><div className="ai-grid"><label>接続先<input value={ollamaUrl} onChange={e => setOllamaUrl(e.target.value)} /></label><label>モデル<input list="ollama-models" value={ollamaModel} onChange={e => setOllamaModel(e.target.value)} /><datalist id="ollama-models">{ollamaModels.map(model => <option key={model.name} value={model.name}>{supportsVision(model) ? '画像対応' : 'テキストのみ'}</option>)}</datalist></label></div><button className="ai-check" onClick={checkOllama}>接続とモデルを確認</button></>}
+              <label>コピーの方向性<input value={aiDirection} onChange={e => setAiDirection(e.target.value)} /></label><button className="ai-generate" disabled={!slides.length || (aiProvider === 'ollama' && !ollamaModel.trim()) || aiLoading} onClick={askAi}>{aiLoading ? 'AIが考えています…' : '✦ AIにコピーを提案してもらう'}</button><small>{aiProvider === 'chrome' ? 'Chrome組み込みAIで端末内処理します。画像はサーバーへ送信されません。対応Chromeとモデルの準備が必要です。' : ollamaUrl.startsWith('/api/ollama') ? 'Vercelの /api/ollama 経由で接続します。OLLAMA_BASE_URLの設定が必要です。' : '最初の画像を指定したOllamaへ送ります。'}</small>
+            </div>}
           </section>
         </section>
         <section className="preview-side"><div className="section-head preview-title"><div><span>02</span><h2>プレビュー</h2></div><small>9 : 16</small></div>
