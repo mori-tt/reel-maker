@@ -22,7 +22,7 @@ describe('reel timeline', () => {
   it('provides all five selectable video patterns', () => {
     expect(VIDEO_PATTERNS.map(pattern => pattern.id)).toEqual(['cinematic', 'dynamic', 'minimal', 'album', 'social'])
     expect(new Set(VIDEO_PATTERNS.map(pattern => pattern.accent)).size).toBe(5)
-    expect(getVideoPattern('social').name).toBe('SNSトレンド')
+    expect(getVideoPattern('social').name).toEqual({ en: 'Social trend', ja: 'SNSトレンド' })
   })
 
   it('validates stored pattern ids and falls back safely', () => {
@@ -38,9 +38,13 @@ describe('reel timeline', () => {
     expect(isVideoFormatId('shorts')).toBe(true)
     expect(isVideoFormatId('landscape')).toBe(false)
     expect(VIDEO_QUALITIES.map(quality => quality.id)).toEqual(['standard', 'high'])
-    expect(getVideoQuality('high').fps).toBe(30)
+    expect(getVideoQuality('high').fps).toBe(60)
+    expect(getVideoQuality('high').bitsPerSecond).toBeGreaterThanOrEqual(40_000_000)
     expect(getVideoQuality('high').bitsPerSecond).toBeGreaterThan(getVideoQuality('standard').bitsPerSecond)
     expect(isVideoQualityId('high')).toBe(true)
+    expect(getVideoFormat('reel').name.en).toBe('Instagram Reel')
+    expect(getVideoFormat('reel').description.en).not.toMatch(/[ぁ-んァ-ヶ一-龠々ー]/)
+    expect(getVideoQuality('high').name.ja).toBe('高画質')
   })
 
   it('calculates distinct, bounded motion for every pattern', () => {

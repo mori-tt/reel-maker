@@ -7,8 +7,10 @@
 - JPG / PNG / WebP / HEIC / HEIF画像の複数選択
 - HEIC / HEIFをブラウザ内でJPEGへ変換
 - 画像の並べ替え・削除
-- タイトルとCTAの編集
-- Chrome端末内AI、ローカルOllama、Ollama Cloudによるタイトル・CTA提案
+- 画像ごとのタイトル・CTA・表示有無・差し込み位置の編集
+- Chrome端末内AI、ローカルOllama、Ollama Cloudによる画像別タイトル・CTA提案
+- 英語／日本語UI切替（初回は英語）
+- 1080p・60fps・42Mbpsの高画質書き出しプリセット
 - シネマティック／ダイナミック／ミニマル／フォトアルバム／SNSトレンドの5種類の動画演出
 - Instagramリール／ストーリー／フィード縦型・正方形／YouTube Shortsの用途別出力
 - 標準30fps／高画質60fpsと、用途・演出連動のコピー方向性・自由記述
@@ -22,7 +24,9 @@ npm install --include=dev
 npm run dev
 ```
 
-ローカル開発時のOllama接続先は `http://localhost:11434` です。
+ローカル開発時のOllama接続先は `http://localhost:11434` です。アプリの「接続先とモデルを自動検出」を押すと、`localhost:11434` と `127.0.0.1:11434` を順番に確認し、接続できたURL、取得した全モデル、画像対応状況を画面に表示します。画像対応モデルがあれば優先選択します。
+
+ブラウザからOllamaプロセス自体を起動することはできません。Webページにローカルプログラムを任意起動させないブラウザ／OSのセキュリティ制約によるものです。未起動・接続失敗時は、アプリ内の「ローカルOllamaを検出できない場合」を開くと、次の手順も確認できます。
 
 ## AIコピー提案
 
@@ -52,11 +56,20 @@ ollama list
 curl http://localhost:11434/api/tags
 ```
 
-ブラウザから接続できない場合は、開発URLを許可してOllamaを起動します。
+ブラウザから接続できない場合は、次の順番で確認します。
+
+1. `ollama serve` を実行し、Ollamaを起動する
+2. `curl http://localhost:11434/api/tags` でAPI応答が返ることを確認する
+3. `ollama list` でモデルを確認し、画像対応モデルがなければ `ollama pull gemma3:4b` を実行する
+4. CORSで遮断される場合は、開発URLを許可してOllamaを再起動する
 
 ```bash
 OLLAMA_ORIGINS="http://localhost:5173,http://127.0.0.1:5173" ollama serve
 ```
+
+5. アプリで「接続先とモデルを自動検出」をもう一度押す
+
+アプリを `https://` の公開サイトから開いている場合、ブラウザがローカルの `http://localhost:11434` をMixed ContentまたはPrivate Network Accessの制約で遮断することがあります。その場合はこのリポジトリをローカル起動して利用するか、認証・TLS付きの安全なプロキシを用意してください。Ollamaを無認証のままインターネットへ公開しないでください。
 
 ## Vercelへのデプロイ
 

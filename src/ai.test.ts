@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { buildCopyPrompt, isHeicFile, normalizeOllamaUrl, parseAiCopy, selectVisionModel, supportsVision } from './ai'
+import { buildCopyPrompt, getLocalOllamaCandidates, isHeicFile, normalizeOllamaUrl, parseAiCopy, selectVisionModel, supportsVision } from './ai'
 
 describe('HEIC support', () => {
   it('recognizes HEIC and HEIF by mime type or extension', () => {
@@ -12,6 +12,13 @@ describe('HEIC support', () => {
 describe('Ollama helpers', () => {
   it('normalizes the server URL without a trailing slash', () => {
     expect(normalizeOllamaUrl(' http://localhost:11434/// ')).toBe('http://localhost:11434')
+  })
+
+  it('builds a unique preferred-first list of local endpoints', () => {
+    expect(getLocalOllamaCandidates('http://127.0.0.1:11434/')).toEqual([
+      'http://127.0.0.1:11434',
+      'http://localhost:11434',
+    ])
   })
 
   it('parses JSON even when the model wraps it in a markdown fence', () => {
@@ -41,5 +48,12 @@ describe('Ollama helpers', () => {
     expect(prompt).toContain('Instagramストーリー')
     expect(prompt).toContain('温かく')
     expect(prompt).toContain('押し売り感を出さない')
+  })
+
+  it('builds an English-only prompt for the English UI', () => {
+    const prompt = buildCopyPrompt({ language: 'en', formatName: 'Instagram Story', direction: 'Warm and concise', customDirection: 'Avoid hard selling' })
+    expect(prompt).toContain('English copywriter')
+    expect(prompt).toContain('Instagram Story')
+    expect(prompt).not.toMatch(/[ぁ-んァ-ヶ一-龠々ー]/)
   })
 })

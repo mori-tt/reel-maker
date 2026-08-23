@@ -3,30 +3,31 @@ export type VideoPatternId = 'cinematic' | 'dynamic' | 'minimal' | 'album' | 'so
 export type VideoFormatId = 'reel' | 'story' | 'feed-portrait' | 'square' | 'shorts'
 export type VideoQualityId = 'standard' | 'high'
 
-export type VideoPattern = { id: VideoPatternId; name: string; description: string; accent: string; copyDirection: string }
-export type VideoFormat = { id: VideoFormatId; name: string; description: string; width: number; height: number; safeTop: number; safeBottom: number; fileName: string }
-export type VideoQuality = { id: VideoQualityId; name: string; fps: number; bitsPerSecond: number; scale: number; description: string }
+export type LocalizedText = { en: string; ja: string }
+export type VideoPattern = { id: VideoPatternId; name: LocalizedText; description: LocalizedText; accent: string; copyDirection: LocalizedText }
+export type VideoFormat = { id: VideoFormatId; name: LocalizedText; description: LocalizedText; width: number; height: number; safeTop: number; safeBottom: number; fileName: string }
+export type VideoQuality = { id: VideoQualityId; name: LocalizedText; fps: number; bitsPerSecond: number; scale: number; description: LocalizedText }
 export type PatternFrame = { scale: number; translateX: number; translateY: number; rotation: number; imageOpacity: number; textOpacity: number; textTranslateY: number; textScale: number; overlayOpacity: number }
 
 export const VIDEO_PATTERNS: readonly VideoPattern[] = [
-  { id: 'cinematic', name: 'シネマティック', description: 'ゆっくりズーム＋深いフェード', accent: '#b9ff66', copyDirection: '余韻のある映画的な言葉。情景と感情を静かに伝える' },
-  { id: 'dynamic', name: 'ダイナミック', description: '速いズーム＋横スライド', accent: '#ff725e', copyDirection: '短く力強い言葉。行動を促すテンポのよいコピー' },
-  { id: 'minimal', name: 'ミニマル', description: '静かな切り替え＋控えめな文字', accent: '#f4f0e8', copyDirection: '簡潔で上品な言葉。情報を詰め込まず余白を残す' },
-  { id: 'album', name: 'フォトアルバム', description: '柔らかなパン＋クロスフェード', accent: '#ffd6a5', copyDirection: '思い出を語る温かい言葉。親しみや共感を大切にする' },
-  { id: 'social', name: 'SNSトレンド', description: '短いカット＋ポップな強調', accent: '#75e6ff', copyDirection: '冒頭で惹きつける旬の表現。保存やシェアにつながるコピー' },
+  { id: 'cinematic', name: { en: 'Cinematic', ja: 'シネマティック' }, description: { en: 'Slow zoom + deep fade', ja: 'ゆっくりズーム＋深いフェード' }, accent: '#b9ff66', copyDirection: { en: 'Use cinematic, lingering language that conveys the scene and emotion quietly.', ja: '余韻のある映画的な言葉。情景と感情を静かに伝える' } },
+  { id: 'dynamic', name: { en: 'Dynamic', ja: 'ダイナミック' }, description: { en: 'Fast zoom + horizontal slide', ja: '速いズーム＋横スライド' }, accent: '#ff725e', copyDirection: { en: 'Use short, powerful language with an energetic call to action.', ja: '短く力強い言葉。行動を促すテンポのよいコピー' } },
+  { id: 'minimal', name: { en: 'Minimal', ja: 'ミニマル' }, description: { en: 'Quiet cuts + subtle text', ja: '静かな切り替え＋控えめな文字' }, accent: '#f4f0e8', copyDirection: { en: 'Use concise, elegant language and leave visual breathing room.', ja: '簡潔で上品な言葉。情報を詰め込まず余白を残す' } },
+  { id: 'album', name: { en: 'Photo album', ja: 'フォトアルバム' }, description: { en: 'Gentle pan + crossfade', ja: '柔らかなパン＋クロスフェード' }, accent: '#ffd6a5', copyDirection: { en: 'Use warm, relatable language that feels like sharing a memory.', ja: '思い出を語る温かい言葉。親しみや共感を大切にする' } },
+  { id: 'social', name: { en: 'Social trend', ja: 'SNSトレンド' }, description: { en: 'Quick cuts + bold accents', ja: '短いカット＋ポップな強調' }, accent: '#75e6ff', copyDirection: { en: 'Open with a timely hook that naturally encourages saves and shares.', ja: '冒頭で惹きつける旬の表現。保存やシェアにつながるコピー' } },
 ] as const
 
 export const VIDEO_FORMATS: readonly VideoFormat[] = [
-  { id: 'reel', name: 'Instagramリール', description: '9:16・縦型ショート', width: 1080, height: 1920, safeTop: .08, safeBottom: .18, fileName: 'instagram-reel' },
-  { id: 'story', name: 'Instagramストーリー', description: '9:16・上下UI安全領域', width: 1080, height: 1920, safeTop: .14, safeBottom: .2, fileName: 'instagram-story' },
-  { id: 'feed-portrait', name: 'フィード縦型', description: '4:5・Instagram投稿', width: 1080, height: 1350, safeTop: .06, safeBottom: .1, fileName: 'feed-portrait' },
-  { id: 'square', name: 'フィード正方形', description: '1:1・汎用SNS投稿', width: 1080, height: 1080, safeTop: .06, safeBottom: .1, fileName: 'feed-square' },
-  { id: 'shorts', name: 'YouTube Shorts', description: '9:16・右側UIを考慮', width: 1080, height: 1920, safeTop: .08, safeBottom: .16, fileName: 'youtube-shorts' },
+  { id: 'reel', name: { en: 'Instagram Reel', ja: 'Instagramリール' }, description: { en: '9:16 vertical short video', ja: '9:16・縦型ショート' }, width: 1080, height: 1920, safeTop: .08, safeBottom: .18, fileName: 'instagram-reel' },
+  { id: 'story', name: { en: 'Instagram Story', ja: 'Instagramストーリー' }, description: { en: '9:16 with top and bottom UI safe areas', ja: '9:16・上下UI安全領域' }, width: 1080, height: 1920, safeTop: .14, safeBottom: .2, fileName: 'instagram-story' },
+  { id: 'feed-portrait', name: { en: 'Portrait feed', ja: 'フィード縦型' }, description: { en: '4:5 Instagram post', ja: '4:5・Instagram投稿' }, width: 1080, height: 1350, safeTop: .06, safeBottom: .1, fileName: 'feed-portrait' },
+  { id: 'square', name: { en: 'Square feed', ja: 'フィード正方形' }, description: { en: '1:1 social post', ja: '1:1・汎用SNS投稿' }, width: 1080, height: 1080, safeTop: .06, safeBottom: .1, fileName: 'feed-square' },
+  { id: 'shorts', name: { en: 'YouTube Shorts', ja: 'YouTube Shorts' }, description: { en: '9:16 with right-side UI allowance', ja: '9:16・右側UIを考慮' }, width: 1080, height: 1920, safeTop: .08, safeBottom: .16, fileName: 'youtube-shorts' },
 ] as const
 
 export const VIDEO_QUALITIES: readonly VideoQuality[] = [
-  { id: 'standard', name: '標準', fps: 30, bitsPerSecond: 12_000_000, scale: 1, description: '1080p・標準画質' },
-  { id: 'high', name: '高画質', fps: 30, bitsPerSecond: 28_000_000, scale: 1, description: '1080p・高精細・高ビットレート' },
+  { id: 'standard', name: { en: 'Standard', ja: '標準' }, fps: 30, bitsPerSecond: 16_000_000, scale: 1, description: { en: '1080p · balanced file size', ja: '1080p・標準ファイルサイズ' } },
+  { id: 'high', name: { en: 'High quality', ja: '高画質' }, fps: 60, bitsPerSecond: 42_000_000, scale: 1, description: { en: '1080p · 60fps · high bitrate', ja: '1080p・60fps・高ビットレート' } },
 ] as const
 
 const clamp = (value: number, min = 0, max = 1) => Math.max(min, Math.min(value, max))
