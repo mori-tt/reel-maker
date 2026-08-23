@@ -8,8 +8,10 @@
 - HEIC / HEIFをブラウザ内でJPEGへ変換
 - 画像の並べ替え・削除
 - タイトルとCTAの編集
-- Chrome組み込みAIまたはOllama画像対応モデルによるタイトル・CTA提案
+- Chrome端末内AI、ローカルOllama、Ollama Cloudによるタイトル・CTA提案
 - シネマティック／ダイナミック／ミニマル／フォトアルバム／SNSトレンドの5種類の動画演出
+- Instagramリール／ストーリー／フィード縦型・正方形／YouTube Shortsの用途別出力
+- 標準30fps／高画質60fpsと、用途・演出連動のコピー方向性・自由記述
 - フェード＋ズーム付き9:16プレビュー
 - 1080×1920 WebM動画の生成・ダウンロード
 
@@ -24,10 +26,11 @@ npm run dev
 
 ## AIコピー提案
 
-画面で次の2方式を選択できます。
+画面で次の3方式を選択できます。
 
-- **Chrome AI**: Chrome Prompt APIの画像入力を使い、画像・タイトル・CTAを端末内で処理します。「Chrome AIの利用状況を確認」で対応状況を確認できます。対応Chrome、端末要件、組み込みモデルの準備が必要です。
-- **Ollama**: 指定したOllama画像対応モデルへ画像を渡して提案を生成します。
+- **Chrome端末内AI**: Chrome Prompt APIの画像入力を使い、画像・タイトル・CTAを端末内で処理します。対応Chrome、端末要件、組み込みモデルの準備が必要です。ブラウザAPIのためVercelサーバー側で代行実行はできません。
+- **ローカルOllama**: 利用者のMac上のOllamaへ直接接続します。画像対応モデルが必要です。
+- **Ollama Cloud**: Vercel APIを経由し、サーバー環境変数の認証情報で接続します。画像は外部サービスへ送信され、料金・無料枠・利用可能モデルはアカウント側の状態に依存します。
 
 ### Ollama
 
@@ -63,10 +66,12 @@ OLLAMA_ORIGINS="http://localhost:5173,http://127.0.0.1:5173" ollama serve
 vercel
 ```
 
-Vercelプロジェクトには以下を設定します。
+VercelプロジェクトにはOllama Cloud用として以下を設定します。
 
-- `OLLAMA_BASE_URL`: Vercelから到達できるHTTPSのOllama互換エンドポイント
-- `OLLAMA_API_KEY`: 接続先がBearer認証を要求する場合のみ
+- `OLLAMA_CLOUD_API_KEY`: Ollama CloudのAPIキー
+- `OLLAMA_CLOUD_BASE_URL`: 必要な場合のみCloud APIのベースURL（未設定時は `https://ollama.com`）
+
+従来の任意Ollamaプロキシを使う場合は、`OLLAMA_BASE_URL` と必要に応じて `OLLAMA_API_KEY` を設定します。APIキーをフロントエンドやlocalStorageへ保存しない設計です。
 
 ### 重要な制約
 

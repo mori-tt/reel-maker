@@ -1,4 +1,4 @@
-import { parseAiCopy } from './ai'
+import { buildCopyPrompt, parseAiCopy } from './ai'
 import type { AiCopy } from './ai'
 
 export type ChromeAiAvailability = 'available' | 'downloadable' | 'downloading' | 'unavailable'
@@ -55,6 +55,8 @@ export function chromeAiAvailabilityMessage(status: ChromeAiAvailability): strin
 export async function generateChromeAiCopy(options: {
   image: Blob
   direction?: string
+  customDirection?: string
+  formatName?: string
   onDownloadProgress?: (progress: number) => void
   api?: LanguageModelApi | null
 }): Promise<AiCopy> {
@@ -74,12 +76,7 @@ export async function generateChromeAiCopy(options: {
     },
   })
   try {
-    const instruction = [
-      'あなたはInstagram Reelsの日本語コピーライターです。',
-      'この画像を見て、短く印象的なタイトル（28文字以内）と自然なCTA（32文字以内）を1つずつ作ってください。',
-      options.direction ? `方向性: ${options.direction}` : '',
-      '日本語で回答してください。',
-    ].filter(Boolean).join('\n')
+    const instruction = buildCopyPrompt({ direction: options.direction, customDirection: options.customDirection, formatName: options.formatName })
     const raw = await session.prompt([
       { role: 'user', content: [{ type: 'text', value: instruction }, { type: 'image', value: options.image }] },
     ], { responseConstraint: responseSchema, omitResponseConstraintInput: true })

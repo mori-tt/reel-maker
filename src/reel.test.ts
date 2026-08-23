@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { VIDEO_PATTERNS, getFrameState, getMimeType, getPatternFrame, getVideoPattern, isVideoPatternId, moveItem } from './reel'
+import { VIDEO_FORMATS, VIDEO_PATTERNS, VIDEO_QUALITIES, getFrameState, getMimeType, getPatternFrame, getVideoFormat, getVideoPattern, getVideoQuality, isVideoFormatId, isVideoPatternId, isVideoQualityId, moveItem } from './reel'
 
 describe('reel timeline', () => {
   it('maps playback time to a slide and local progress', () => {
@@ -29,6 +29,18 @@ describe('reel timeline', () => {
     expect(isVideoPatternId('album')).toBe(true)
     expect(isVideoPatternId('unknown')).toBe(false)
     expect(isVideoPatternId(null)).toBe(false)
+  })
+
+  it('provides social formats and quality presets', () => {
+    expect(VIDEO_FORMATS.map(format => format.id)).toEqual(['reel', 'story', 'feed-portrait', 'square', 'shorts'])
+    expect(getVideoFormat('square')).toMatchObject({ width: 1080, height: 1080 })
+    expect(getVideoFormat('story').safeTop).toBeGreaterThan(getVideoFormat('reel').safeTop)
+    expect(isVideoFormatId('shorts')).toBe(true)
+    expect(isVideoFormatId('landscape')).toBe(false)
+    expect(VIDEO_QUALITIES.map(quality => quality.id)).toEqual(['standard', 'high'])
+    expect(getVideoQuality('high').fps).toBe(60)
+    expect(getVideoQuality('high').bitsPerSecond).toBeGreaterThan(getVideoQuality('standard').bitsPerSecond)
+    expect(isVideoQualityId('high')).toBe(true)
   })
 
   it('calculates distinct, bounded motion for every pattern', () => {

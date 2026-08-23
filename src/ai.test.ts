@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { isHeicFile, normalizeOllamaUrl, parseAiCopy, supportsVision } from './ai'
+import { buildCopyPrompt, isHeicFile, normalizeOllamaUrl, parseAiCopy, supportsVision } from './ai'
 
 describe('HEIC support', () => {
   it('recognizes HEIC and HEIF by mime type or extension', () => {
@@ -25,7 +25,15 @@ describe('Ollama helpers', () => {
 
   it('detects whether an Ollama model accepts images', () => {
     expect(supportsVision({ name: 'vision', capabilities: ['completion', 'vision'] })).toBe(true)
+    expect(supportsVision({ name: 'gemma3:4b' })).toBe(true)
     expect(supportsVision({ name: 'gemma4:e2b', capabilities: ['completion', 'tools', 'thinking'] })).toBe(false)
     expect(supportsVision({ name: 'unknown' })).toBe(false)
+  })
+
+  it('includes format, pattern direction and free-form instructions in the prompt', () => {
+    const prompt = buildCopyPrompt({ formatName: 'Instagramストーリー', direction: '温かく', customDirection: '押し売り感を出さない' })
+    expect(prompt).toContain('Instagramストーリー')
+    expect(prompt).toContain('温かく')
+    expect(prompt).toContain('押し売り感を出さない')
   })
 })
