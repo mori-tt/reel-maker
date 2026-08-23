@@ -1,0 +1,30 @@
+{
+  "name": "reel-maker",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "@vitejs/plugin-react": "latest",
+    "heic-to": "^1.5.2",
+    "react": "latest",
+    "react-dom": "latest",
+    "vite": "latest"
+  },
+  "devDependencies": {
+    "@testing-library/jest-dom": "latest",
+    "@testing-library/react": "latest",
+    "@types/react": "latest",
+    "@types/react-dom": "latest",
+    "@vercel/node": "^7.0.0",
+    "jsdom": "latest",
+    "playwright": "^1.62.1",
+    "typescript": "^5.9.3",
+    "vitest": "latest"
+  }
+}

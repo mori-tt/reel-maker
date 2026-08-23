@@ -1,0 +1,13 @@
+node_modules
+dist
+.vercel
+*.tsbuildinfo
+*.log
+.DS_Store
+
+# Local verification artifacts
+repro-*.mjs
+smoke_test.py
+test-image.b64
+test-ollama-payload.json
+check-tsconfig.json
