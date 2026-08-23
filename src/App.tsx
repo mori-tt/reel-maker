@@ -5,7 +5,8 @@ import type { OllamaModel } from './ai'
 import { chromeAiAvailabilityMessage, generateChromeAiCopy, getChromeAiAvailability } from './chrome-ai'
 import type { ChromeAiAvailability } from './chrome-ai'
 import { normalizeImageFile } from './image'
-import { getFrameState, getMimeType, moveItem } from './reel'
+import { VIDEO_PATTERNS, getFrameState, getMimeType, getPatternFrame, getVideoPattern, isVideoPatternId, moveItem } from './reel'
+import type { PatternFrame, VideoPatternId } from './reel'
 
 type Slide = { id: string; name: string; url: string; image: HTMLImageElement; blob: Blob }
 
@@ -18,29 +19,42 @@ function cover(ctx: CanvasRenderingContext2D, image: HTMLImageElement, width: nu
   ctx.drawImage(image, (width - w) / 2, (height - h) / 2, w, h)
 }
 
-function drawFrame(ctx: CanvasRenderingContext2D, slide: Slide, progress: number, title: string, cta: string) {
+function patternTransform(frame: PatternFrame) {
+  return `translate(${frame.translateX}%, ${frame.translateY}%) rotate(${frame.rotation}deg) scale(${frame.scale})`
+}
+
+function drawFrame(ctx: CanvasRenderingContext2D, slide: Slide, progress: number, title: string, cta: string, patternId: VideoPatternId, index: number) {
   const { width, height } = ctx.canvas
+  const frame = getPatternFrame(patternId, progress, index)
+  const pattern = getVideoPattern(patternId)
   ctx.fillStyle = '#09080d'
   ctx.fillRect(0, 0, width, height)
   ctx.save()
-  const fade = Math.min(progress / .16, (1 - progress) / .16, 1)
-  ctx.globalAlpha = Math.max(.12, fade)
-  cover(ctx, slide.image, width, height, 1 + progress * .08)
+  ctx.globalAlpha = frame.imageOpacity
+  ctx.translate(width / 2 + width * frame.translateX / 100, height / 2 + height * frame.translateY / 100)
+  ctx.rotate(frame.rotation * Math.PI / 180)
+  ctx.translate(-width / 2, -height / 2)
+  cover(ctx, slide.image, width, height, frame.scale)
   ctx.restore()
-  const gradient = ctx.createLinearGradient(0, height * .45, 0, height)
+  const gradient = ctx.createLinearGradient(0, height * .42, 0, height)
   gradient.addColorStop(0, 'rgba(8,7,13,0)')
-  gradient.addColorStop(1, 'rgba(8,7,13,.88)')
+  gradient.addColorStop(1, `rgba(8,7,13,${frame.overlayOpacity})`)
   ctx.fillStyle = gradient
   ctx.fillRect(0, 0, width, height)
+  ctx.save()
+  ctx.globalAlpha = frame.textOpacity
+  ctx.translate(width / 2, height * .79 + frame.textTranslateY * height / 430)
+  ctx.scale(frame.textScale, frame.textScale)
   ctx.textAlign = 'center'
   ctx.fillStyle = '#fff'
   ctx.font = `700 ${Math.round(width * .073)}px system-ui, sans-serif`
-  ctx.fillText(title || 'My story', width / 2, height * .79, width * .82)
+  ctx.fillText(title || 'My story', 0, 0, width * .82)
   if (cta) {
-    ctx.fillStyle = '#b9ff66'
+    ctx.fillStyle = pattern.accent
     ctx.font = `600 ${Math.round(width * .03)}px system-ui, sans-serif`
-    ctx.fillText(cta, width / 2, height * .86, width * .72)
+    ctx.fillText(cta, 0, height * .07, width * .72)
   }
+  ctx.restore()
 }
 
 export default function App() {
@@ -48,6 +62,10 @@ export default function App() {
   const [title, setTitle] = useState('週末の小さな旅')
   const [cta, setCta] = useState('保存して、次の休日へ')
   const [seconds, setSeconds] = useState(3)
+  const [patternId, setPatternId] = useState<VideoPatternId>(() => {
+    const saved = localStorage.getItem('videoPattern')
+    return isVideoPatternId(saved) ? saved : 'cinematic'
+  })
   const [playing, setPlaying] = useState(false)
   const [time, setTime] = useState(0)
   const [exporting, setExporting] = useState(false)
@@ -67,6 +85,8 @@ export default function App() {
   const inputRef = useRef<HTMLInputElement>(null)
   const total = slides.length * seconds
   const frame = getFrameState(time, slides.length, seconds)
+  const pattern = getVideoPattern(patternId)
+  const patternFrame = getPatternFrame(patternId, frame.progress, frame.index)
 
   useEffect(() => { slidesRef.current = slides }, [slides])
   useEffect(() => () => slidesRef.current.forEach(slide => URL.revokeObjectURL(slide.url)), [])
@@ -180,7 +200,7 @@ export default function App() {
         const elapsed = (performance.now() - start) / 1000
         if (elapsed >= total) break
         const state = getFrameState(elapsed, slides.length, seconds)
-        drawFrame(ctx, slides[state.index], state.progress, title, cta)
+        drawFrame(ctx, slides[state.index], state.progress, title, cta, patternId, state.index)
         setTime(elapsed)
         await sleep(1000 / 30)
       }
@@ -207,6 +227,7 @@ export default function App() {
             <div className="item-actions"><button disabled={index === 0} aria-label="前へ" onClick={() => setSlides(moveItem(slides, index, index - 1))}>↑</button><button disabled={index === slides.length - 1} aria-label="後ろへ" onClick={() => setSlides(moveItem(slides, index, index + 1))}>↓</button><button aria-label="削除" onClick={() => remove(index)}>×</button></div>
           </article>)}</div>}
           <div className="fields"><label>タイトル<input value={title} maxLength={28} onChange={e => setTitle(e.target.value)} /></label><label>CTA<input value={cta} maxLength={32} onChange={e => setCta(e.target.value)} /></label><label>1枚の表示時間<div className="range-row"><input type="range" min="2" max="6" step="1" value={seconds} onChange={e => setSeconds(Number(e.target.value))}/><output>{seconds}秒</output></div></label></div>
+          <section className="pattern-section" aria-labelledby="pattern-heading"><div className="pattern-head"><div><span>✦</span><div><h3 id="pattern-heading">動画パターン</h3><p>プレビューと書き出しに同じ演出を適用</p></div></div><strong>{pattern.name}</strong></div><div className="pattern-grid">{VIDEO_PATTERNS.map(item => <button key={item.id} className={patternId === item.id ? 'active' : ''} aria-pressed={patternId === item.id} style={{ '--pattern-accent': item.accent } as React.CSSProperties} onClick={() => { setPatternId(item.id); localStorage.setItem('videoPattern', item.id); setPlaying(false) }}><span className="pattern-preview"><i/><i/><i/></span><b>{item.name}</b><small>{item.description}</small></button>)}</div></section>
           <section className="ai-card">
             <div className="ai-card-head"><div><span className="ai-spark">✦</span><div><h3>AIコピー提案</h3><p>画像を見てタイトルとCTAを提案</p></div></div><button className={`toggle ${aiEnabled ? 'on' : ''}`} aria-pressed={aiEnabled} aria-label="AIモード" onClick={() => setAiEnabled(!aiEnabled)}><span /></button></div>
             {aiEnabled && <div className="ai-fields">
@@ -217,7 +238,7 @@ export default function App() {
           </section>
         </section>
         <section className="preview-side"><div className="section-head preview-title"><div><span>02</span><h2>プレビュー</h2></div><small>9 : 16</small></div>
-          <div className="phone"><div className="phone-screen">{slides.length ? <><img className="hero-image" src={slides[frame.index]?.url} alt="プレビュー" style={{ transform: `scale(${1 + frame.progress * .08})`, opacity: Math.max(.15, Math.min(frame.progress / .16, (1 - frame.progress) / .16, 1)) }} /><div className="scrim"/><div className="reel-copy"><h3>{title || 'My story'}</h3>{cta && <p>{cta}</p>}</div><div className="counter">{frame.index + 1} / {slides.length}</div></> : <div className="empty-preview"><span>✦</span><p>写真を追加すると<br/>ここにプレビューされます</p></div>}</div></div>
+          <div className={`phone pattern-${patternId}`} style={{ '--pattern-accent': pattern.accent } as React.CSSProperties}><div className="phone-screen">{slides.length ? <><img className="hero-image" src={slides[frame.index]?.url} alt="プレビュー" style={{ transform: patternTransform(patternFrame), opacity: patternFrame.imageOpacity }} /><div className="scrim" style={{ opacity: patternFrame.overlayOpacity }}/><div className="reel-copy" style={{ opacity: patternFrame.textOpacity, transform: `translateY(${patternFrame.textTranslateY}px) scale(${patternFrame.textScale})` }}><h3>{title || 'My story'}</h3>{cta && <p>{cta}</p>}</div><div className="counter">{frame.index + 1} / {slides.length}</div><div className="pattern-badge">{pattern.name}</div></> : <div className="empty-preview"><span>✦</span><p>写真を追加すると<br/>ここにプレビューされます</p></div>}</div></div>
           <div className="transport"><button className="play" disabled={!slides.length} onClick={() => setPlaying(!playing)}>{playing ? 'Ⅱ' : '▶'}</button><input aria-label="再生位置" type="range" min="0" max={total || 1} step="0.01" value={time} onChange={e => { setPlaying(false); setTime(Number(e.target.value)) }}/><time>{Math.floor(time)}s / {total}s</time></div>
           <button className="export" disabled={!slides.length || exporting} onClick={exportVideo}>{exporting ? '動画を生成中…' : '動画を書き出す'}<span>WEBM · 1080 × 1920</span></button>
         </section>
