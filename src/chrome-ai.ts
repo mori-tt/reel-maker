@@ -52,6 +52,26 @@ export function chromeAiAvailabilityMessage(status: ChromeAiAvailability): strin
   return 'このChromeでは画像対応の組み込みAIを利用できません。対応Chrome・端末要件・モデル設定を確認してください。'
 }
 
+export async function prepareChromeAi(options: { onDownloadProgress?: (progress: number) => void; api?: LanguageModelApi | null } = {}): Promise<ChromeAiAvailability> {
+  const api = options.api ?? getChromeLanguageModel()
+  if (!api) return 'unavailable'
+  const availability = await getChromeAiAvailability(api)
+  if (availability === 'unavailable' || availability === 'downloading') return availability
+  if (availability === 'downloadable') {
+    const session = await api.create({
+      ...modalities,
+      monitor(monitor: EventTarget) {
+        monitor.addEventListener('downloadprogress', event => {
+          const loaded = Number((event as Event & { loaded?: number }).loaded ?? 0)
+          options.onDownloadProgress?.(Math.round(loaded * 100))
+        })
+      },
+    })
+    session.destroy()
+  }
+  return getChromeAiAvailability(api)
+}
+
 export async function generateChromeAiCopy(options: {
   image: Blob
   direction?: string

@@ -8,13 +8,14 @@ export const RECOMMENDED_VISION_MODELS = [
   { name: 'llama3.2-vision:11b', note: '画像理解に対応' },
   { name: 'qwen2.5vl:7b', note: '画像と日本語に対応' },
 ] as const
+export const OLLAMA_LOCAL_CANDIDATES = ['http://localhost:11434', 'http://127.0.0.1:11434'] as const
 
 export function supportsVision(model: OllamaModel): boolean {
   if (model.capabilities?.includes('vision')) return true
   const value = `${model.name} ${model.model ?? ''} ${(model.details?.families ?? []).join(' ')}`.toLowerCase()
   return /(vision|llava|bakllava|moondream|gemma3|qwen2\.5vl|qwen3-vl|minicpm-v)/.test(value)
 }
-export function defaultOllamaUrl() { return 'http://localhost:11434' }
+export function defaultOllamaUrl() { return OLLAMA_LOCAL_CANDIDATES[0] }
 export function initialOllamaUrl(saved: string | null) { return saved && /^https?:\/\//i.test(saved) ? saved : defaultOllamaUrl() }
 export function isHeicFile(file: FileLike) { return /image\/hei[cf]/i.test(file.type) || /\.(hei[cf])$/i.test(file.name) }
 export function normalizeOllamaUrl(url: string) { return url.trim().replace(/\/+$/, '') }
@@ -33,11 +34,24 @@ function ollamaApiUrl(baseUrl: string, path: 'tags' | 'generate', provider: AiPr
   if (provider === 'ollama-cloud') return `/api/ollama?path=api/${path}&provider=cloud`
   return `${normalizeOllamaUrl(baseUrl)}/api/${path}`
 }
-export async function listOllamaModels(baseUrl: string, provider: AiProviderId = 'ollama-local'): Promise<OllamaModel[]> {
-  const response = await fetch(ollamaApiUrl(baseUrl, 'tags', provider))
+export async function listOllamaModels(baseUrl: string, provider: AiProviderId = 'ollama-local', signal?: AbortSignal): Promise<OllamaModel[]> {
+  const response = await fetch(ollamaApiUrl(baseUrl, 'tags', provider), { signal })
   if (!response.ok) throw new Error(`Ollamaのモデル一覧を取得できませんでした（${response.status}）`)
   const payload = await response.json() as { models?: OllamaModel[] }
   return payload.models ?? []
+}
+export async function discoverLocalOllama(preferredUrl?: string): Promise<{ url: string; models: OllamaModel[] }> {
+  const candidates = [...new Set([preferredUrl, ...OLLAMA_LOCAL_CANDIDATES].filter(Boolean) as string[])]
+  for (const url of candidates) {
+    const controller = new AbortController()
+    const timer = setTimeout(() => controller.abort(), 1800)
+    try { return { url, models: await listOllamaModels(url, 'ollama-local', controller.signal) } } catch { /* 次の候補を試す */ } finally { clearTimeout(timer) }
+  }
+  throw new Error('ローカルOllamaを自動検出できませんでした。Ollamaが起動中か確認してください。')
+}
+export function selectVisionModel(models: OllamaModel[], current?: string) {
+  if (current && models.some(model => model.name === current && supportsVision(model))) return current
+  return models.find(supportsVision)?.name ?? models[0]?.name ?? current ?? ''
 }
 export function buildCopyPrompt(options: { direction?: string; customDirection?: string; formatName?: string }) {
   return [

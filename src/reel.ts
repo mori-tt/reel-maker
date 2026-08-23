@@ -25,8 +25,8 @@ export const VIDEO_FORMATS: readonly VideoFormat[] = [
 ] as const
 
 export const VIDEO_QUALITIES: readonly VideoQuality[] = [
-  { id: 'standard', name: '標準', fps: 30, bitsPerSecond: 8_000_000, scale: 1, description: '1080p・軽量' },
-  { id: 'high', name: '高画質', fps: 60, bitsPerSecond: 16_000_000, scale: 1, description: '1080p・60fps・高ビットレート' },
+  { id: 'standard', name: '標準', fps: 30, bitsPerSecond: 12_000_000, scale: 1, description: '1080p・標準画質' },
+  { id: 'high', name: '高画質', fps: 30, bitsPerSecond: 28_000_000, scale: 1, description: '1080p・高精細・高ビットレート' },
 ] as const
 
 const clamp = (value: number, min = 0, max = 1) => Math.max(min, Math.min(value, max))

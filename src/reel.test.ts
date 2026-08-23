@@ -38,7 +38,7 @@ describe('reel timeline', () => {
     expect(isVideoFormatId('shorts')).toBe(true)
     expect(isVideoFormatId('landscape')).toBe(false)
     expect(VIDEO_QUALITIES.map(quality => quality.id)).toEqual(['standard', 'high'])
-    expect(getVideoQuality('high').fps).toBe(60)
+    expect(getVideoQuality('high').fps).toBe(30)
     expect(getVideoQuality('high').bitsPerSecond).toBeGreaterThan(getVideoQuality('standard').bitsPerSecond)
     expect(isVideoQualityId('high')).toBe(true)
   })
