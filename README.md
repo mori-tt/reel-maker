@@ -8,7 +8,7 @@
 
 ## English
 
-Frameflow turns a set of photos into a polished 9:16 short video (Instagram Reel / Story, YouTube Shorts, feed posts). Everything — image conversion and video rendering — happens in the browser; nothing is uploaded unless you explicitly choose an external AI provider.
+Frameflow turns a set of photos into a polished short video sized for wherever you're posting it — Instagram Reel / Story (9:16), portrait (4:5) or square (1:1) feed posts, YouTube Shorts (9:16). Everything — image conversion and video rendering — happens in the browser; nothing is uploaded unless you explicitly choose an external AI provider.
 
 This README covers setup, deployment, and configuration. For a walkthrough of using the app itself (adding photos, motion styles, AI copy, exporting), see [USER_GUIDE.md](USER_GUIDE.md).
 
@@ -20,16 +20,16 @@ This README covers setup, deployment, and configuration. For a walkthrough of us
 - Per-image title, CTA, visibility, and text position
 - AI copy suggestions via Chrome on-device AI, Local Ollama, or Ollama Cloud
 - English / Japanese UI (English by default)
-- 1080p export presets: Standard (30fps) and High quality (60fps, 42 Mbps)
+- Export quality presets: Standard (30fps) and High quality (60fps, 42 Mbps) — both render at 1080px wide, with height set by the chosen format
 - 5 motion styles, each with its own color grade and signature decoration — not just a faster/slower pan-zoom:
   - **Cinematic** — slow zoom + letterbox bars + muted grade
   - **Dynamic** — fast zoom/slide + a white flash on every cut + punchy grade
   - **Minimal** — quiet cuts + soft vignette
   - **Photo album** — gentle pan + warm sepia grade and vignette
   - **Social trend** — quick cuts + a pulsing accent badge + bold grade
-- The minimum duration per image automatically rises as you add more photos, so a large batch never feels like it's flickering by
+- Duration per image automatically adjusts with photo count — the minimum rises and the maximum comes down as you add more, so a large batch neither flickers by nor runs unexpectedly long
 - Output formats: Instagram Reel / Story, portrait/square feed, YouTube Shorts, each with format-aware safe areas
-- 1080×1920 MP4 (H.264) export; automatically falls back to WebM on browsers without WebCodecs
+- MP4 (H.264) export at the resolution of the chosen format (1080 wide; 1920/1350/1080 tall); automatically falls back to WebM on browsers without WebCodecs
 
 ### Getting started
 
@@ -170,7 +170,7 @@ npm run build
 
 ## 日本語
 
-画像からInstagram Reels向けの9:16動画を作るWebアプリです。画像変換と動画生成はブラウザ内で行い、外部AIプロバイダーを明示的に選ばない限り画像はどこにも送信されません。
+画像から、投稿先に合わせたショート動画を作るWebアプリです。Instagramリール／ストーリー（9:16）、フィード縦型（4:5）・正方形（1:1）投稿、YouTube Shorts（9:16）に対応しています。画像変換と動画生成はブラウザ内で行い、外部AIプロバイダーを明示的に選ばない限り画像はどこにも送信されません。
 
 このREADMEはセットアップ・デプロイ・設定についての内容です。アプリの使い方（写真の追加、動画パターン、AIコピー、書き出しなど）は[USER_GUIDE.md](USER_GUIDE.md)を参照してください。
 
@@ -182,16 +182,16 @@ npm run build
 - 画像ごとのタイトル・CTA・表示有無・差し込み位置の編集
 - Chrome端末内AI、ローカルOllama、Ollama Cloudによる画像別タイトル・CTA提案
 - 英語／日本語UI切替（初回は英語）
-- 書き出しプリセット：標準（30fps）／高画質（60fps・42Mbps）、いずれも1080p
+- 書き出しプリセット：標準（30fps）／高画質（60fps・42Mbps）。幅はいずれも1080pxで、高さは選んだ用途によって変わります
 - 5種類の動画演出。単にパン・ズームの速さを変えるだけでなく、色調と装飾も演出ごとに変えて見た目を差別化：
   - **シネマティック** — 遅いズーム＋レターボックス＋落ち着いた色調
   - **ダイナミック** — 速いズーム／スライド＋カットごとの白フラッシュ＋鮮やかな色調
   - **ミニマル** — 静かな切り替え＋柔らかいビネット
   - **フォトアルバム** — 柔らかなパン＋暖色セピア調＋暖色ビネット
   - **SNSトレンド** — 短いカット＋鼓動するアクセントバッジ＋ポップな色調
-- 写真の枚数に応じて1枚あたりの表示時間の下限が自動的に上がり、枚数が多くても切り替えが速すぎない
+- 写真の枚数に応じて1枚あたりの表示時間の下限・上限が自動的に調整され、枚数が多くても切り替えが速すぎたり、逆に合計が長くなりすぎたりしない
 - 出力用途：Instagramリール／ストーリー、フィード縦型・正方形、YouTube Shorts。それぞれ用途別の安全領域を最適化
-- 1080×1920 MP4（H.264）で書き出し。WebCodecs非対応ブラウザでは自動的にWebMへフォールバック
+- 選んだ用途の解像度（幅1080px、高さ1920／1350／1080px）でMP4（H.264）書き出し。WebCodecs非対応ブラウザでは自動的にWebMへフォールバック
 
 ### ローカル起動
 

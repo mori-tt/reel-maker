@@ -12,7 +12,7 @@ This guide covers day-to-day use of the app (turning photos into a video). For l
 
 ### What Frameflow does
 
-Frameflow turns a set of photos into a short vertical video — an Instagram Reel or Story, a feed post, or a YouTube Short — directly in your browser. Nothing leaves your device except the specific image you send to an AI provider, and only if you choose to use one.
+Frameflow turns a set of photos into a short video sized for wherever you're posting it — an Instagram Reel or Story, a portrait or square feed post, or a YouTube Short — directly in your browser. Nothing leaves your device except the specific image you send to an AI provider, and only if you choose to use one.
 
 ### Quick start
 
@@ -44,7 +44,7 @@ Under **"Video format"**, pick the output that matches where you're posting:
 
 The dashed rectangle in the preview shows the "safe area" — keep important content inside it so it isn't covered by the platform's own buttons/UI.
 
-Below that, choose **Standard** (1080p/30fps, smaller file) or **High quality** (1080p/60fps, smoother motion, larger file).
+Below that, choose **Standard** (30fps, smaller file) or **High quality** (60fps, smoother motion, larger file). Both render 1080px wide; the height comes from the format you picked above (e.g. 1920px for Reel/Story/Shorts, 1350px for portrait feed, 1080px for square feed).
 
 ### 3. Titles, captions, and per-image text
 
@@ -106,7 +106,7 @@ Use the **EN / 日本語** switch in the top-right corner at any time — it cha
 
 ### Frameflowでできること
 
-Frameflowは、手持ちの写真からInstagramリール／ストーリー、フィード投稿、YouTube Shortsなどの縦型ショート動画をブラウザ内だけで作れるアプリです。AIプロバイダーを自分で選んで使わない限り、画像がどこかへ送信されることはありません。
+Frameflowは、手持ちの写真から投稿先に合わせたショート動画（Instagramリール／ストーリー、フィード縦型・正方形投稿、YouTube Shortsなど）をブラウザ内だけで作れるアプリです。AIプロバイダーを自分で選んで使わない限り、画像がどこかへ送信されることはありません。
 
 ### かんたんな流れ
 
@@ -138,7 +138,7 @@ Frameflowは、手持ちの写真からInstagramリール／ストーリー、�
 
 プレビュー内の点線枠は「安全領域」です。ここに収まるように配置すると、各プラットフォーム自体のボタン等に隠れません。
 
-その下で、**標準**（1080p・30fps・軽量）または**高画質**（1080p・60fps・なめらか・ファイルサイズ大）を選べます。
+その下で、**標準**（30fps・軽量）または**高画質**（60fps・なめらか・ファイルサイズ大）を選べます。幅はいずれも1080pxで、高さは上で選んだ用途によって変わります（Reel/ストーリー/Shortsは1920px、フィード縦型は1350px、フィード正方形は1080px）。
 
 ### 3. タイトル・CTA・画像ごとの文字
 
