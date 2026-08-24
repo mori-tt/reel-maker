@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { VIDEO_FORMATS, VIDEO_PATTERNS, VIDEO_QUALITIES, getFrameState, getMimeType, getPatternFrame, getVideoFormat, getVideoPattern, getVideoQuality, isVideoFormatId, isVideoPatternId, isVideoQualityId, moveItem, nextFrameDelayMs } from './reel'
+import { VIDEO_FORMATS, VIDEO_PATTERNS, VIDEO_QUALITIES, getFrameState, getMimeType, getPatternFrame, getVideoFormat, getVideoPattern, getVideoQuality, isVideoFormatId, isVideoPatternId, isVideoQualityId, minSecondsPerImage, moveItem, nextFrameDelayMs } from './reel'
 
 describe('reel timeline', () => {
   it('maps playback time to a slide and local progress', () => {
@@ -70,5 +70,26 @@ describe('reel timeline', () => {
     expect(new Set(frames.map(frame => `${frame.scale}:${frame.translateX}:${frame.textScale}`)).size).toBe(5)
     expect(getPatternFrame('cinematic', -1)).toEqual(getPatternFrame('cinematic', 0))
     expect(getPatternFrame('cinematic', 2)).toEqual(getPatternFrame('cinematic', 1))
+  })
+
+  it('gives every pattern its own color grade and signature decoration', () => {
+    expect(new Set(VIDEO_PATTERNS.map(pattern => pattern.filter)).size).toBe(5)
+    expect(VIDEO_PATTERNS.map(pattern => pattern.decoration)).toEqual(['letterbox', 'none', 'vignette', 'frame', 'badge'])
+  })
+
+  it('only flashes on cut for the dynamic pattern, fading out quickly', () => {
+    expect(getPatternFrame('dynamic', 0).flashOpacity).toBeGreaterThan(0)
+    expect(getPatternFrame('dynamic', 0).flashOpacity).toBeLessThanOrEqual(1)
+    expect(getPatternFrame('dynamic', 1).flashOpacity).toBe(0)
+    for (const pattern of ['minimal', 'album', 'social', 'cinematic'] as const) expect(getPatternFrame(pattern, 0).flashOpacity).toBe(0)
+  })
+
+  it('raises the minimum seconds per image as the photo count grows', () => {
+    expect(minSecondsPerImage(1)).toBe(2)
+    expect(minSecondsPerImage(8)).toBe(2)
+    expect(minSecondsPerImage(9)).toBe(3)
+    expect(minSecondsPerImage(16)).toBe(3)
+    expect(minSecondsPerImage(17)).toBe(4)
+    expect(minSecondsPerImage(50)).toBe(4)
   })
 })
