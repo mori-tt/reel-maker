@@ -59,5 +59,6 @@ export function getFrameState(time: number, itemCount: number, secondsPerItem: n
   return { index, progress: safeTime >= total ? 1 : (safeTime - index * secondsPerItem) / secondsPerItem }
 }
 export function moveItem<T>(items: readonly T[], from: number, to: number): T[] { const next = [...items]; if (from < 0 || from >= next.length || to < 0 || to >= next.length || from === to) return next; const [item] = next.splice(from, 1); next.splice(to, 0, item); return next }
-const MIME_TYPES = ['video/webm;codecs=vp9', 'video/webm;codecs=vp8', 'video/webm']
+const MIME_TYPES = ['video/webm;codecs=av01', 'video/webm;codecs=vp9', 'video/webm;codecs=vp8', 'video/webm']
 export function getMimeType(isSupported: (type: string) => boolean) { return MIME_TYPES.find(isSupported) ?? 'video/webm' }
+export function nextFrameDelayMs(start: number, frameIndex: number, fps: number, now: number): number { return Math.max(0, start + (frameIndex * 1000) / fps - now) }

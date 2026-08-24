@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { VIDEO_FORMATS, VIDEO_PATTERNS, VIDEO_QUALITIES, getFrameState, getMimeType, getPatternFrame, getVideoFormat, getVideoPattern, getVideoQuality, isVideoFormatId, isVideoPatternId, isVideoQualityId, moveItem } from './reel'
+import { VIDEO_FORMATS, VIDEO_PATTERNS, VIDEO_QUALITIES, getFrameState, getMimeType, getPatternFrame, getVideoFormat, getVideoPattern, getVideoQuality, isVideoFormatId, isVideoPatternId, isVideoQualityId, moveItem, nextFrameDelayMs } from './reel'
 
 describe('reel timeline', () => {
   it('maps playback time to a slide and local progress', () => {
@@ -17,6 +17,17 @@ describe('reel timeline', () => {
   it('selects the first supported webm mime type', () => {
     const supported = (type: string) => type.includes('vp8')
     expect(getMimeType(supported)).toBe('video/webm;codecs=vp8')
+  })
+
+  it('prefers the more efficient av1 codec when the browser supports it', () => {
+    const supported = (type: string) => type.includes('av01') || type.includes('vp9')
+    expect(getMimeType(supported)).toBe('video/webm;codecs=av01')
+  })
+
+  it('schedules export frames on a fixed cadence instead of drifting after slow draws', () => {
+    expect(nextFrameDelayMs(0, 1, 30, 10)).toBeCloseTo(23.33, 1)
+    expect(nextFrameDelayMs(1000, 3, 60, 1040)).toBeCloseTo(10, 5)
+    expect(nextFrameDelayMs(0, 1, 30, 100)).toBe(0)
   })
 
   it('provides all five selectable video patterns', () => {

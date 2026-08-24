@@ -2,9 +2,9 @@ import { describe, expect, it, vi } from 'vitest'
 import { chromeAiAvailabilityMessage, generateChromeAiCopy, getChromeAiAvailability, getChromeLanguageModel, prepareChromeAi } from './chrome-ai'
 
 describe('Chrome built-in AI', () => {
-  it('reports unavailable when LanguageModel is absent', async () => {
+  it('reports a distinct no-api status when LanguageModel is absent (e.g. Safari/Firefox)', async () => {
     expect(getChromeLanguageModel({} as typeof globalThis)).toBeNull()
-    await expect(getChromeAiAvailability(null)).resolves.toBe('unavailable')
+    await expect(getChromeAiAvailability(null)).resolves.toBe('no-api')
   })
 
   it('explains model download states in the selected language', () => {
@@ -12,6 +12,18 @@ describe('Chrome built-in AI', () => {
     expect(chromeAiAvailabilityMessage('unavailable')).toContain('利用できません')
     expect(chromeAiAvailabilityMessage('available', 'en')).toContain('available')
     expect(chromeAiAvailabilityMessage('available', 'en')).not.toMatch(/[ぁ-んァ-ヶ一-龠々ー]/)
+  })
+
+  it('tells non-Chromium browsers this feature does not exist there and offers the Ollama alternative', () => {
+    expect(chromeAiAvailabilityMessage('no-api', 'ja')).toContain('Safari')
+    expect(chromeAiAvailabilityMessage('no-api', 'ja')).toContain('Ollama')
+    expect(chromeAiAvailabilityMessage('no-api', 'en')).toContain('Safari')
+    expect(chromeAiAvailabilityMessage('no-api', 'en')).toContain('Ollama')
+  })
+
+  it('surfaces the no-api message (not the generic one) when generating copy without the API', async () => {
+    const image = new Blob(['image'], { type: 'image/jpeg' })
+    await expect(generateChromeAiCopy({ image, language: 'ja' })).rejects.toThrow('Safari')
   })
 
   it('downloads and initializes the model when it is downloadable', async () => {
