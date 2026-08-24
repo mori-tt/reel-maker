@@ -22,11 +22,13 @@ This README covers setup, deployment, and configuration. For a walkthrough of us
 - Per-image title, CTA, visibility, and text position
 - Per-image auto-enhance: an optional, one-tap exposure/contrast correction (histogram-based, entirely local)
 - Per-image focal point: tap where the subject is so cropping to the target aspect ratio keeps it in frame, or let AI locate the main subject for you (see [Chrome/Ollama AI beyond copywriting](#chromeollama-ai-beyond-copywriting))
-- Per-image style override: give any single photo its own motion/color pattern instead of the project-wide default - useful when one photo in the batch needs to stand out, and it carries through to that photo's still-image export too
+- Per-image style override: give any single photo its own motion/color pattern instead of the project-wide default - useful when one photo in the batch needs to stand out, and it carries through to that photo's still-image export too. AI can suggest a fitting style too, either per-image or for the whole project at once (see [Chrome/Ollama AI beyond copywriting](#chromeollama-ai-beyond-copywriting))
 - A dedicated "Export image" button per photo, for grabbing just one slide (at its own style) without exporting the whole batch
-- Background music: upload your own track, or pick one of 8 built-in generated moods (Calm, Uplifting, Cinematic, Playful, Dramatic, Lofi, Energetic, Acoustic) - either way it's trimmed/looped to the video's length with a fade-in at the start and a fade-out at the end (MP4 export only). The built-in tracks are synthesized live from a chord progression right in your browser (see [Where the background music comes from](#where-the-background-music-comes-from)) - not sampled from anywhere, so there's no licensing to think about
+- A project-wide logo/watermark: upload an image once and it's composited into a fixed corner (with adjustable position/opacity/size) on every slide - in the live preview, every video export, and every still-image export
+- Background music: upload your own track, or pick one of 8 built-in generated moods (Calm, Uplifting, Cinematic, Playful, Dramatic, Lofi, Energetic, Acoustic) - either way it's trimmed/looped to the video's length with a fade-in at the start and a fade-out at the end (MP4 export only). The built-in tracks are synthesized live from a chord progression right in your browser (see [Where the background music comes from](#where-the-background-music-comes-from)) - not sampled from anywhere, so there's no licensing to think about. Every mood (and whatever track is currently selected) has a play/pause button for a quick sample before committing to it
 - Export every slide as a set of still images (e.g. an Instagram carousel post) in addition to video, using the same color grade/decoration/text as the chosen motion style
-- AI copy suggestions via Chrome on-device AI, Local Ollama, or Ollama Cloud, plus a non-copywriting use of the same vision models for focal-point detection (see [Chrome/Ollama AI beyond copywriting](#chromeollama-ai-beyond-copywriting))
+- AI copy suggestions via Chrome on-device AI, Local Ollama, or Ollama Cloud, plus non-copywriting uses of the same vision models for focal-point detection and style suggestion (see [Chrome/Ollama AI beyond copywriting](#chromeollama-ai-beyond-copywriting)). Every AI-dependent button is disabled with a specific, visible reason (not just silently unclickable) until the selected provider is actually confirmed reachable - checking Chrome's on-device model availability, an actual Local Ollama connection, or an actual Ollama Cloud connection, never just whether a model name has been typed in
+- "Export video" opens an on-screen player (with the mixed-in BGM, if any) to watch before choosing to download or share, rather than downloading immediately
 - English / Japanese UI (English by default)
 - Export quality presets: Standard (30fps, 16 Mbps), High quality (60fps, 42 Mbps), and Ultra HD (60fps, 80 Mbps, 2x resolution - true 4K on formats based on a 1080p canvas) — Standard/High render at the format's base resolution (e.g. 1080x1920 for a 9:16 format); Ultra HD doubles both dimensions
 - 18 motion styles, each with its own color grade, signature decoration, and text treatment (alignment/case/shadow) — not just a faster/slower pan-zoom. Any single photo can also override the project's style (see "Per-image style override" above), so a video isn't locked to only one of these at a time:
@@ -96,11 +98,24 @@ For real produced/licensed music instead, download a track yourself from a sourc
 
 ### Chrome/Ollama AI beyond copywriting
 
-The same on-device/Ollama vision models used for per-image title/CTA and the whole-post caption (see below) are also used for one non-copywriting task: **focal-point detection**. Instead of asking the model to write text, `buildFocalPointPrompt` (`src/ai.ts`) asks it to place the photo's main subject on a 3x3 grid (top-left, top-center, ..., bottom-right), and the app sets the manual focal point to that cell automatically.
+The same on-device/Ollama vision models used for per-image title/CTA and the whole-post caption (see below) are also used for two non-copywriting tasks:
 
-A grid was chosen deliberately over asking for continuous `x`/`y` coordinates directly: testing against a small on-device model (`gemma3:4b`) showed it reliably collapsed free-form coordinates to `{"x":0.5,"y":0.5}` (dead center) regardless of where the subject actually was, but reasoned much more sensibly about which third of the frame something was in. This is a real, current limitation of small vision-language models at precise spatial localization, not a bug in the prompt/parsing - a stronger model (e.g. `qwen2.5vl`, which is specifically known for better visual grounding) may do noticeably better with the exact same code path. Either way, the UI treats every detection as a starting point to review, not a final answer - the same dot you'd place manually is shown for adjustment afterward.
+- **Focal-point detection**: instead of asking the model to write text, `buildFocalPointPrompt` (`src/ai.ts`) asks it to place the photo's main subject on a 3x3 grid (top-left, top-center, ..., bottom-right), and the app sets the manual focal point to that cell automatically.
+- **Style suggestion**: `buildStylePrompt` (`src/ai.ts`) asks the model to act as a design assistant and pick the one motion/color style (out of all 18 - see [Motion Style](#features)) whose mood best fits a photo's content, then applies it - either to a single photo's style override, or to the whole project's default style, via two separate buttons ("AI style" per photo, "AI: suggest a style for this project" above the pattern grid).
 
-There's no equivalent "beyond copywriting" use for actual pixel generation/editing: Chrome's Prompt API and Ollama's vision models can *understand* an image and respond with text (a title, a caption, a grid cell), but none of them can output new pixels - that would be a fundamentally different kind of model (image generation/inpainting), which isn't what's available on-device today.
+Both ask the model to choose from a small fixed set of labels rather than open-ended output, deliberately: testing against a small on-device model (`gemma3:4b`) showed it reliably collapsed free-form `x`/`y` coordinates to `{"x":0.5,"y":0.5}` (dead center) regardless of where the subject actually was, but reasoned much more sensibly about which third of the frame something was in - and it shows real (if imperfect) sensitivity to a photo's actual color/mood when picking a style, rather than always returning the same choice, though a large 18-way choice is inherently harder for a small model than 9 grid cells. This is a real, current limitation of small vision-language models, not a bug in the prompt/parsing - a stronger model (e.g. `qwen2.5vl`, which is specifically known for better visual grounding) may do noticeably better with the exact same code path. Either way, the UI treats every suggestion as a starting point to review, not a final answer - a focal point still shows the same draggable dot, and a suggested style still shows in the same style picker/override dropdown you'd use manually.
+
+There's no equivalent "beyond copywriting" use for actual pixel generation/editing: Chrome's Prompt API and Ollama's vision models can *understand* an image and respond with text or a choice from a list (a title, a caption, a grid cell, a style id), but none of them can output new pixels - that would be a fundamentally different kind of model (image generation/inpainting), which isn't what's available on-device today. Every "AI-generated" image or video in this app is really the app's own deterministic renderer, driven by settings an AI helped choose.
+
+<a id="ai-availability"></a>
+
+### AI availability and disabled buttons
+
+Every AI-dependent button (copy suggestions, the whole-post caption, focal-point detection, style suggestion) is disabled - with a specific reason shown above the provider tabs - until the currently-selected provider is confirmed usable, not just when a model name happens to be typed into a field:
+
+- **Chrome on-device AI**: disabled until "Check availability and prepare automatically" reports the model is actually `available` in this browser.
+- **Local Ollama**: disabled until "Detect endpoint and models" successfully connects; switching away from Local Ollama and back requires reconnecting, so a stale success from a previous session (or the other provider) can't leave a button looking ready when it isn't.
+- **Ollama Cloud**: same as Local Ollama, but via "Connect and fetch models" through the `/api/ollama` proxy (see [Deploying to Vercel](#deploying-to-vercel) below for its server-side setup). If the server's `OLLAMA_CLOUD_API_KEY` isn't configured, the proxy returns a specific error (`OLLAMA_CLOUD_API_KEY is not configured.`) and the app now surfaces that exact message instead of a bare status code, so it's clear the fix is a deployment configuration issue rather than something to retry.
 
 <a id="ai-copy-suggestions"></a>
 
@@ -240,11 +255,13 @@ FrameflowはInstagram・TikTok・YouTubeへの直接投稿・アップロード�
 - 画像ごとのタイトル・CTA・表示有無・差し込み位置の編集
 - 画像ごとの自動補正：ワンタップの露出・コントラスト補正（ヒストグラム解析、完全にローカル処理）
 - 画像ごとのフォーカルポイント：被写体の位置をタップすると、用途に合わせてクロップしても被写体が枠内に残る。またAIに主な被写体の位置を検出してもらうことも可能（詳しくは[Chrome/OllamaのAI活用：コピー生成以外の使い方](#chromeollamaのai活用コピー生成以外の使い方)）
-- 画像ごとのスタイル上書き：プロジェクト全体の既定パターンとは別に、1枚だけ違う動き・色調を指定可能。その画像だけ目立たせたいときに便利で、その画像の静止画書き出しにも反映されます
+- 画像ごとのスタイル上書き：プロジェクト全体の既定パターンとは別に、1枚だけ違う動き・色調を指定可能。その画像だけ目立たせたいときに便利で、その画像の静止画書き出しにも反映されます。AIに合うスタイルを提案してもらうこともできます（画像ごと、またはプロジェクト全体まとめて。詳しくは[Chrome/OllamaのAI活用：コピー生成以外の使い方](#chromeollamaのai活用コピー生成以外の使い方)）
 - 画像ごとの「この画像を書き出す」ボタン：バッチ全体を書き出さずに、その画像（＋そのスタイル）だけを1枚取得できます
-- BGM（背景音楽）：お好きな音楽ファイルをアップロードするか、内蔵の生成ムード（カーム／アップリフティング／シネマティック／プレイフル／ドラマチック／ローファイ／エナジェティック／アコースティックの8種類）から選べます。いずれも動画の長さに合わせて自動でトリミングまたはループし、開始時にフェードイン、終了時にフェードアウトします（MP4書き出し時のみ）。内蔵ムードはブラウザ内でその場で音を合成したものです（詳しくは[BGMの音源について](#bgmの音源について)）
+- プロジェクト全体のロゴ／透かし：画像を1回アップロードすると、位置・不透明度・大きさを指定した状態で、すべてのスライドの決まった隅に合成されます（プレビュー・動画書き出し・静止画書き出しすべてに反映）
+- BGM（背景音楽）：お好きな音楽ファイルをアップロードするか、内蔵の生成ムード（カーム／アップリフティング／シネマティック／プレイフル／ドラマチック／ローファイ／エナジェティック／アコースティックの8種類）から選べます。いずれも動画の長さに合わせて自動でトリミングまたはループし、開始時にフェードイン、終了時にフェードアウトします（MP4書き出し時のみ）。内蔵ムードはブラウザ内でその場で音を合成したものです（詳しくは[BGMの音源について](#bgmの音源について)）。各ムード（および現在選択中の曲）には、決める前に試聴できる再生ボタンが付いています
 - 動画に加えて、各画像を静止画セット（Instagramカルーセル投稿など）としても書き出し可能。選んだ動画パターンと同じ色調・装飾・文字を反映
-- Chrome端末内AI、ローカルOllama、Ollama Cloudによる画像別タイトル・CTA提案。同じ画像認識モデルを使ったコピー生成以外の用途（フォーカルポイント検出）もあります
+- Chrome端末内AI、ローカルOllama、Ollama Cloudによる画像別タイトル・CTA提案。同じ画像認識モデルを使ったコピー生成以外の用途（フォーカルポイント検出・スタイル提案）もあります（詳しくは[Chrome/OllamaのAI活用：コピー生成以外の使い方](#chromeollamaのai活用コピー生成以外の使い方)）。AI関連のボタンは、選んだ方式が実際に使える状態であることを確認できるまで、具体的な理由付きで無効化されます（単にモデル名が入力されているかだけではありません）
+- 「動画を書き出す」は、すぐにダウンロードするのではなく、実際に再生できるプレーヤー（合成したBGMも含む）を画面に表示し、確認してからダウンロードまたは共有を選べます
 - 英語／日本語UI切替（初回は英語）
 - 書き出しプリセット：標準（30fps・16Mbps）／高画質（60fps・42Mbps）／最高画質（60fps・80Mbps・2倍解像度、1080pベースの用途では実質4K）。標準・高画質は用途の基本解像度（例：9:16用途なら1080×1920）で書き出し、最高画質は縦横ともに2倍になります
 - 18種類の動画演出。単にパン・ズームの速さを変えるだけでなく、色調・装飾・文字の見せ方（配置・大文字化・影）まで演出ごとに変えて見た目を差別化。1枚の画像だけプロジェクトの演出を上書きすることも可能なので（上記「画像ごとのスタイル上書き」）、1つの動画が必ずしも1種類の演出に固定されるわけではありません：
@@ -314,11 +331,24 @@ Frameflowは音声ファイルを同梱・ダウンロードしたり、いわ�
 
 ### Chrome/OllamaのAI活用：コピー生成以外の使い方
 
-画像別タイトル・CTAや投稿キャプション（後述）に使っているのと同じChrome端末内AI／Ollamaの画像認識モデルは、コピー生成以外の用途にも1つ使われています：**フォーカルポイント検出**です。モデルに文章を書かせる代わりに、`buildFocalPointPrompt`（`src/ai.ts`）は写真の主な被写体が3×3グリッド（top-left, top-center, ... , bottom-right）のどこにあるかを答えさせ、そのマスに合わせてフォーカルポイントを自動設定します。
+画像別タイトル・CTAや投稿キャプション（後述）に使っているのと同じChrome端末内AI／Ollamaの画像認識モデルは、コピー生成以外の用途にも2つ使われています：
 
-連続的な`x`/`y`座標を直接聞く方式ではなく、あえてグリッド方式を採用しています。小型の端末内モデル（`gemma3:4b`）で検証したところ、自由形式の座標を聞くと被写体の実際の位置に関わらず`{"x":0.5,"y":0.5}`（中央固定）に収束してしまう一方、画面のどの三分割エリアにあるかという問いにはずっと妥当に答えられることが分かりました。これは小型の画像言語モデルが持つ、精密な空間位置特定における現時点での実際の限界であり、プロンプトやパース処理側の不具合ではありません——より高性能なモデル（例えば視覚的グラウンディングに強いとされる`qwen2.5vl`など）を使えば、同じコードのまま明らかに良い結果が得られる可能性があります。いずれにしても、UI上はどの検出結果も「最終回答」ではなく「確認・調整の出発点」として扱っており、手動で置くのと同じドットが後から調整できる形で表示されます。
+- **フォーカルポイント検出**：モデルに文章を書かせる代わりに、`buildFocalPointPrompt`（`src/ai.ts`）は写真の主な被写体が3×3グリッド（top-left, top-center, ... , bottom-right）のどこにあるかを答えさせ、そのマスに合わせてフォーカルポイントを自動設定します。
+- **スタイル提案**：`buildStylePrompt`（`src/ai.ts`）はモデルにデザインアシスタントとして振る舞わせ、18種類の動画パターン（[機能一覧](#機能)参照）の中から写真の雰囲気に最も合う1つを選ばせます。選ばれたスタイルは、その画像だけのスタイル上書き、またはプロジェクト全体の既定スタイルとして適用されます（画像ごとの「AIスタイル」ボタン、パターン一覧上部の「AI：このプロジェクトのスタイルを提案」ボタン）。
 
-画像そのものの生成・編集については、「コピー生成以外」に相当する使い道は今のところありません。Chrome Prompt APIやOllamaの画像認識モデルは画像を理解して文章（タイトル・キャプション・グリッドのマスなど）で答えることはできますが、新しいピクセルを出力することはできません。それには画像生成・インペインティングという根本的に別種のモデルが必要で、現時点で端末内で使えるものではないためです。
+どちらも、自由な出力ではなく、あらかじめ決まった少数の候補から選ばせる方式を採用しています。小型の端末内モデル（`gemma3:4b`）で検証したところ、自由形式の`x`/`y`座標を聞くと被写体の実際の位置に関わらず`{"x":0.5,"y":0.5}`（中央固定）に収束してしまう一方、画面のどの三分割エリアにあるかという問いにはずっと妥当に答えられることが分かりました。スタイル提案についても、常に同じ答えを返すわけではなく、写真の色調・雰囲気にある程度反応して選択が変わることを確認していますが、9マスのグリッドより18択の方が小型モデルにとっては難しい課題です。これは小型の画像言語モデルが持つ、現時点での実際の限界であり、プロンプトやパース処理側の不具合ではありません——より高性能なモデル（例えば視覚的グラウンディングに強いとされる`qwen2.5vl`など）を使えば、同じコードのまま明らかに良い結果が得られる可能性があります。いずれにしても、UI上はどの提案も「最終回答」ではなく「確認・調整の出発点」として扱っており、フォーカルポイントは手動で置くのと同じドットで、スタイル提案も普段使うスタイル選択・上書きの仕組みでそのまま調整できます。
+
+画像そのものの生成・編集については、「コピー生成以外」に相当する使い道は今のところありません。Chrome Prompt APIやOllamaの画像認識モデルは画像を理解して文章や一覧からの選択（タイトル・キャプション・グリッドのマス・スタイルid）で答えることはできますが、新しいピクセルを出力することはできません。それには画像生成・インペインティングという根本的に別種のモデルが必要で、現時点で端末内で使えるものではないためです。本アプリで「AIが生成した」ように見える画像・動画は、実際にはAIが選んだ設定に基づいて、アプリ自身の決定論的なレンダラーが描画したものです。
+
+<a id="aiの利用可否とボタンの無効化"></a>
+
+### AIの利用可否とボタンの無効化
+
+AIに関するボタン（コピー提案、投稿キャプション、フォーカルポイント検出、スタイル提案）はすべて、単にモデル名が入力されているかだけでなく、選んだ方式が実際に使える状態であることが確認できるまで、具体的な理由付きで無効化されます：
+
+- **Chrome端末内AI**：「利用状況を確認して自動準備」でモデルが実際に`available`（利用可能）と判定されるまで無効です。
+- **ローカルOllama**：「接続先とモデルを自動検出」で接続に成功するまで無効です。ローカルOllamaから切り替えて戻ってきた場合も再接続が必要になるため、前回の接続成功（または別方式での成功）がそのまま「利用可能」として残ることはありません。
+- **Ollama Cloud**：ローカルOllamaと同様ですが、「接続してモデル一覧を取得」から`/api/ollama`プロキシ経由で接続します（サーバー側の設定は下記「Vercelへのデプロイ」を参照）。サーバーの`OLLAMA_CLOUD_API_KEY`が設定されていない場合、プロキシは具体的なエラー（`OLLAMA_CLOUD_API_KEY is not configured.`）を返し、単なるステータスコードではなくその内容をそのまま表示するため、リトライすべき問題ではなくデプロイ設定の問題であることが分かります。
 
 <a id="aiコピー提案"></a>
 

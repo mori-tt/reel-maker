@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import { chromeAiAvailabilityMessage, generateChromeAiCaption, generateChromeAiCopy, generateChromeAiFocalPoint, getChromeAiAvailability, getChromeLanguageModel, prepareChromeAi } from './chrome-ai'
+import { chromeAiAvailabilityMessage, generateChromeAiCaption, generateChromeAiCopy, generateChromeAiFocalPoint, generateChromeAiStyle, getChromeAiAvailability, getChromeLanguageModel, prepareChromeAi } from './chrome-ai'
 
 describe('Chrome built-in AI', () => {
   it('reports a distinct no-api status when LanguageModel is absent (e.g. Safari/Firefox)', async () => {
@@ -74,5 +74,20 @@ describe('Chrome built-in AI', () => {
     await expect(generateChromeAiFocalPoint({ image, language: 'ja', api })).resolves.toEqual({ x: .8, y: .5 })
     expect(prompt).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({ responseConstraint: expect.objectContaining({ properties: expect.objectContaining({ cell: expect.anything() }) }) }))
     expect(destroy).toHaveBeenCalled()
+  })
+
+  it('suggests a motion/color style for the design-assist feature, constrained to the known pattern catalog', async () => {
+    const destroy = vi.fn()
+    const prompt = vi.fn().mockResolvedValue('{"patternId":"luxury"}')
+    const api = { availability: vi.fn().mockResolvedValue('available' as const), create: vi.fn().mockResolvedValue({ prompt, destroy }) }
+    const image = new Blob(['image'], { type: 'image/jpeg' })
+    await expect(generateChromeAiStyle({ image, language: 'ja', api })).resolves.toEqual({ patternId: 'luxury' })
+    expect(prompt).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({ responseConstraint: expect.objectContaining({ properties: expect.objectContaining({ patternId: expect.objectContaining({ enum: expect.arrayContaining(['luxury', 'kawaii', 'cinematic']) }) }) }) }))
+    expect(destroy).toHaveBeenCalled()
+  })
+
+  it('surfaces the no-api message when suggesting a style without the API', async () => {
+    const image = new Blob(['image'], { type: 'image/jpeg' })
+    await expect(generateChromeAiStyle({ image, language: 'ja' })).rejects.toThrow('Ollama')
   })
 })

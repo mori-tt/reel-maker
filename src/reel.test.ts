@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { VIDEO_FORMATS, VIDEO_PATTERNS, VIDEO_QUALITIES, getFrameState, getMimeType, getPatternFrame, getVideoFormat, getVideoPattern, getVideoQuality, isVideoFormatId, isVideoPatternId, isVideoQualityId, maxSecondsPerImage, minSecondsPerImage, motionMultiplier, moveItem, nextFrameDelayMs } from './reel'
+import { VIDEO_FORMATS, VIDEO_PATTERNS, VIDEO_QUALITIES, getFrameState, getMimeType, getPatternFrame, getVideoFormat, getVideoPattern, getVideoQuality, isVideoFormatId, isVideoPatternId, isVideoQualityId, maxSecondsPerImage, minSecondsPerImage, motionMultiplier, moveItem, nextFrameDelayMs, watermarkRect } from './reel'
 
 describe('reel timeline', () => {
   it('maps playback time to a slide and local progress', () => {
@@ -176,5 +176,35 @@ describe('reel timeline', () => {
 
   it('keeps min at or below max at every photo count', () => {
     for (const count of [1, 8, 9, 16, 17, 50, 200]) expect(minSecondsPerImage(count)).toBeLessThanOrEqual(maxSecondsPerImage(count))
+  })
+})
+
+describe('watermark placement', () => {
+  it('places the watermark in each of the four corners with a consistent margin', () => {
+    const width = 1080; const height = 1920
+    const topLeft = watermarkRect('top-left', width, height, 1, .2)
+    const topRight = watermarkRect('top-right', width, height, 1, .2)
+    const bottomLeft = watermarkRect('bottom-left', width, height, 1, .2)
+    const bottomRight = watermarkRect('bottom-right', width, height, 1, .2)
+    const margin = width * .04
+    expect(topLeft.x).toBeCloseTo(margin); expect(topLeft.y).toBeCloseTo(margin)
+    expect(topRight.x).toBeCloseTo(width - margin - topRight.width); expect(topRight.y).toBeCloseTo(margin)
+    expect(bottomLeft.x).toBeCloseTo(margin); expect(bottomLeft.y).toBeCloseTo(height - margin - bottomLeft.height)
+    expect(bottomRight.x).toBeCloseTo(width - margin - bottomRight.width); expect(bottomRight.y).toBeCloseTo(height - margin - bottomRight.height)
+  })
+
+  it('sizes the watermark from frame width and scale, preserving the image aspect ratio', () => {
+    const square = watermarkRect('bottom-right', 1080, 1920, 1, .2)
+    expect(square.width).toBeCloseTo(1080 * .2)
+    expect(square.height).toBeCloseTo(square.width)
+    const wide = watermarkRect('bottom-right', 1080, 1920, 2, .2)
+    expect(wide.height).toBeCloseTo(wide.width / 2)
+    const tall = watermarkRect('bottom-right', 1080, 1920, .5, .2)
+    expect(tall.height).toBeCloseTo(tall.width / .5)
+  })
+
+  it('clamps an out-of-range scale instead of producing a broken or invisible size', () => {
+    expect(watermarkRect('bottom-right', 1080, 1920, 1, 0).width).toBeCloseTo(1080 * .05)
+    expect(watermarkRect('bottom-right', 1080, 1920, 1, 5).width).toBeCloseTo(1080 * .6)
   })
 })

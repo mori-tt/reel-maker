@@ -100,7 +100,19 @@ The preview updates live so you can compare before exporting. Longer per-image d
 
 Want one photo to use a *different* style than the rest? Use **"Style for this image"** on that photo's card in step 1 above instead of changing this project-wide setting.
 
-### 5. Background music (optional)
+Not sure which of the eighteen fits? If you've turned on [AI copy suggestions](#ai-copy-suggestions-en), an **"AI style"** button appears on each photo's card (next to "AI detect") that picks a matching style for just that photo, and an **"AI: suggest a style for this project"** button appears above this grid that analyzes your first photo and sets this project-wide style instead. See [Chrome/Ollama AI beyond copywriting](#ai-beyond-copywriting-en) for how reliable to expect this to be.
+
+### 5. Logo / watermark (optional)
+
+Under **"Logo / watermark"**, click **"Add a logo image"** to upload one (a PNG with a transparent background usually looks best). It's composited into a fixed corner of every slide — the same corner, opacity, and size throughout — in the live preview and in every export: video, "Export as images", and "Export image".
+
+- **Position**: one of the four corners.
+- **Opacity**: how solid it looks, from a faint watermark to a fully opaque logo.
+- **Size**: how large it renders, as a share of the frame's width.
+
+Click **"Remove"** to take it off again. There's no per-image override for this one — it's meant to be a consistent brand mark across the whole batch.
+
+### 6. Background music (optional)
 
 Under **"Background music"**, either:
 
@@ -119,7 +131,7 @@ Music is only included in the MP4 export — the older WebM fallback (used only 
 
 <a id="ai-copy-suggestions-en"></a>
 
-### 6. AI copy suggestions (optional)
+### 7. AI copy suggestions (optional)
 
 Turn on **"AI copy suggestions"** to have AI write a title and CTA for you, based on each photo.
 
@@ -137,13 +149,20 @@ Below the per-image copy generator is a separate **"Post caption + hashtags"** c
 
 <a id="ai-beyond-copywriting-en"></a>
 
-**Chrome/Ollama AI beyond copywriting:** once AI copy suggestions is on, an **"AI detect"** button also appears next to each photo's focal point thumbnail (step 1 above) - a non-copywriting use of the same vision model, which locates the photo's main subject instead of writing text. It's a genuinely useful shortcut, but worth knowing its limits: smaller on-device models are noticeably better at judging *which general area* of the photo the subject is in than at pinpointing it exactly, so treat a detected position the same way you'd treat AI-written copy - a fast starting point, not a final answer. The dot is always shown afterward so you can nudge it if needed, exactly like setting it manually.
+**Chrome/Ollama AI beyond copywriting:** once AI copy suggestions is on, the same vision model gets used for two non-copywriting shortcuts:
 
-### 7. Preview
+- An **"AI detect"** button next to each photo's focal point thumbnail (step 1 above) locates the photo's main subject instead of writing text.
+- An **"AI style"** button on each photo's card, and an **"AI: suggest a style for this project"** button above the style grid (step 4), pick a matching motion/color style instead of writing text.
+
+Both are genuinely useful shortcuts, but worth knowing their limits: smaller on-device models are noticeably better at judging *which general area* of a photo the subject is in than at pinpointing it exactly, and noticeably better at telling that two very different photos should get different styles than at nailing the single best one out of eighteen. Treat every suggestion the same way you'd treat AI-written copy - a fast starting point, not a final answer. A detected focal point still shows the same draggable dot, and a suggested style still shows up in the same style dropdown/picker, so nothing is locked in without your usual review.
+
+**AI availability and disabled buttons:** every AI-dependent button above (copy, caption, focal point, style) stays disabled - with a specific reason shown just above the provider tabs - until the selected provider is actually confirmed usable, not just because a model name is typed into a field. Chrome needs "Check availability and prepare automatically" to report the model is ready; Local Ollama and Ollama Cloud each need their own "Detect endpoint and models" / "Connect and fetch models" to succeed - switching between them always requires reconnecting, so success on one provider can never make a button look ready for a different one it hasn't actually verified.
+
+### 8. Preview
 
 The phone-shaped preview on the right plays back your video with the fade/zoom/text timing you'll get in the final export. Use the play button and scrubber to check pacing and text placement before exporting.
 
-### 8. Export your video
+### 9. Export your video
 
 Click **"Export video"**. Frameflow renders every frame in the browser - this can take a few seconds to a couple of minutes depending on length, quality, and your device. Rather than downloading straight away, the finished render opens in an on-screen player (with normal play/pause/scrubber/volume controls) so you can actually watch and listen to it - BGM included - before deciding what to do with it:
 
@@ -155,7 +174,7 @@ Prefer stills over (or alongside) video? Click **"Export as images"** instead to
 
 Want just one photo rather than the whole batch? Each photo's card under "Copy for every image" has its own **"Export image"** button that downloads just that slide, at whatever style it's set to (its own override, or the project default) - no need to export everything else along with it.
 
-### 9. Switching languages
+### 10. Switching languages
 
 Use the **EN / 日本語** switch in the top-right corner at any time — it changes the interface language immediately without losing your work.
 
@@ -263,7 +282,19 @@ Frameflowは、手持ちの写真から投稿先に合わせたショート動�
 
 1枚の写真だけ、他とは違うスタイルにしたい場合は、この用途全体の設定を変える代わりに、手順1にあるその写真のカードの**「この画像のスタイル」**を使ってください。
 
-### 5. BGM（背景音楽・任意）
+18種類の中からどれが合うか迷ったら？[AIコピー提案](#ai-copy-suggestions-ja)をオンにすると、各写真のカードに（「AIで検出」の横に）**「AIスタイル」**ボタンが表示され、その1枚に合うスタイルを選んでくれます。またこのグリッドの上に表示される**「AI：このプロジェクトのスタイルを提案」**ボタンは、最初の写真を分析してプロジェクト全体のスタイルを設定します。信頼度については[Chrome/OllamaのAI活用：コピー生成以外の使い方](#ai-beyond-copywriting-ja)を参照してください。
+
+### 5. ロゴ／透かし（任意）
+
+**「ロゴ／透かし」**の**「ロゴ画像を追加」**から画像をアップロードしてください（背景が透明なPNGが最も自然に仕上がります）。すべてのスライドの決まった隅に、同じ隅・不透明度・大きさで合成されます——プレビュー、動画書き出し、「画像として書き出す」、「この画像を書き出す」のすべてに反映されます。
+
+- **位置**：4つの隅から選べます。
+- **不透明度**：薄い透かしから完全に不透明なロゴまで調整できます。
+- **大きさ**：フレーム幅に対する割合で大きさを調整できます。
+
+**「削除」**を押すと解除できます。この機能には画像ごとの上書きはありません——バッチ全体を通して一貫したブランドマークとして使うことを想定しています。
+
+### 6. BGM（背景音楽・任意）
 
 **「BGM（背景音楽）」**では、次のいずれかを選べます：
 
@@ -282,7 +313,7 @@ BGMはMP4書き出し時のみ反映されます。新しいWebCodecs APIに対�
 
 <a id="ai-copy-suggestions-ja"></a>
 
-### 6. AIコピー提案（任意）
+### 7. AIコピー提案（任意）
 
 **「AIコピー提案」**をオンにすると、写真の内容に合わせてAIがタイトル・CTAを考えてくれます。
 
@@ -300,13 +331,20 @@ BGMはMP4書き出し時のみ反映されます。新しいWebCodecs APIに対�
 
 <a id="ai-beyond-copywriting-ja"></a>
 
-**Chrome/OllamaのAI活用：コピー生成以外の使い方：** 「AIコピー提案」をオンにすると、各写真のフォーカルポイントのサムネイル（手順1）の横にも**「AIで検出」**ボタンが表示されます。これは同じ画像認識モデルを使った、コピー生成以外の用途です——文章を書く代わりに、その写真の主な被写体の位置を探します。便利な機能ですが、限界も知っておいてください：小型の端末内モデルは、被写体が「画面のおおまかにどのあたりにあるか」を判断するのは比較的得意ですが、「正確にどこか」まで言い当てるのは苦手な傾向があります。そのため、検出結果はAIが書いたコピーと同じように——最終回答ではなく、たたき台として——扱ってください。検出後は必ずドットが表示されるので、手動設定と同じように必要に応じて位置を調整できます。
+**Chrome/OllamaのAI活用：コピー生成以外の使い方：** 「AIコピー提案」をオンにすると、同じ画像認識モデルを使った、コピー生成以外の2つの機能も使えるようになります：
 
-### 7. プレビュー
+- 各写真のフォーカルポイントのサムネイル（手順1）の横に表示される**「AIで検出」**ボタン——その写真の主な被写体の位置を探します。
+- 各写真のカードに表示される**「AIスタイル」**ボタン、およびスタイル一覧（手順4）の上に表示される**「AI：このプロジェクトのスタイルを提案」**ボタン——文章を書く代わりに、合う動き・色調のスタイルを選びます。
+
+どちらも便利な機能ですが、限界も知っておいてください：小型の端末内モデルは、被写体が「画面のおおまかにどのあたりにあるか」を判断するのは比較的得意ですが「正確にどこか」まで言い当てるのは苦手な傾向があり、スタイル提案についても「明らかに違う雰囲気の写真同士を区別する」のは比較的得意ですが「18種類の中から最適な1つを言い当てる」のは苦手な傾向があります。そのため、どちらの提案結果もAIが書いたコピーと同じように——最終回答ではなく、たたき台として——扱ってください。フォーカルポイント検出後は必ずドットが表示され、スタイル提案後も普段のスタイル選択・上書きの仕組みがそのまま使えるので、必要に応じて調整できます。
+
+**AIの利用可否とボタンの無効化：** 上記のAI関連ボタン（コピー、キャプション、フォーカルポイント、スタイル）はすべて、単にモデル名が入力されているかだけでなく、選んだ方式が実際に使える状態であることが確認できるまで、具体的な理由付きで（プロバイダー選択タブの上に表示されます）無効化されます。Chrome端末内AIは「利用状況を確認して自動準備」でモデルの準備完了が報告されるまで、ローカルOllamaとOllama Cloudはそれぞれ「接続先とモデルを自動検出」／「接続してモデル一覧を取得」で接続が成功するまで無効です。方式を切り替えるたびに再接続が必要になるため、一方の方式での成功が別の方式のボタンをうっかり「利用可能」に見せることはありません。
+
+### 8. プレビュー
 
 右側のスマートフォン風プレビューで、実際の書き出しと同じフェード・ズーム・文字のタイミングを確認できます。再生ボタンとシークバーで、書き出し前にペース配分や文字の位置を確認しましょう。
 
-### 8. 動画の書き出し
+### 9. 動画の書き出し
 
 **「動画を書き出す」**を押すと、Frameflowがブラウザ内で全フレームを描画します——長さ・画質・端末の性能によって数秒から数分かかります。描画が終わると、すぐにダウンロードされるのではなく、実際に再生できるプレーヤー（再生／一時停止／シークバー／音量など通常の操作が可能）が画面に表示されるので、BGMも含めて実際に見て・聴いて確認してから、どうするか決められます：
 
@@ -318,7 +356,7 @@ BGMはMP4書き出し時のみ反映されます。新しいWebCodecs APIに対�
 
 バッチ全体ではなく1枚だけ欲しい場合は、「画像ごとのコピー一覧」の各カードにある**「この画像を書き出す」**ボタンから、その1枚だけを（その画像の設定——上書きしていればそのスタイル、していなければプロジェクトの既定値——で）ダウンロードできます。他のスライドを一緒に書き出す必要はありません。
 
-### 9. 言語の切り替え
+### 10. 言語の切り替え
 
 右上の**EN／日本語**の切り替えはいつでも使えます。作業中の内容を失うことなく、表示言語だけを即座に切り替えます。
 

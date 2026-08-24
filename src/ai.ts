@@ -1,8 +1,11 @@
 import type { Language } from './i18n'
+import { VIDEO_PATTERNS, isVideoPatternId } from './reel'
+import type { VideoPatternId } from './reel'
 
 export type AiCopy = { title: string; cta: string }
 export type AiCaption = { caption: string; hashtags: string[] }
 export type AiFocalPoint = { x: number; y: number }
+export type AiStyleSuggestion = { patternId: VideoPatternId }
 export type CaptionPlatform = 'instagram' | 'tiktok' | 'youtube'
 export type OllamaModel = { name: string; model?: string; capabilities?: string[]; details?: { families?: string[] } }
 export type FileLike = { name: string; type: string }
@@ -27,8 +30,8 @@ export function normalizeOllamaUrl(url: string) { return url.trim().replace(/\/+
 export function getLocalOllamaCandidates(preferredUrl?: string) { return [...new Set([preferredUrl, ...OLLAMA_LOCAL_CANDIDATES].filter(Boolean).map(url => normalizeOllamaUrl(url as string)))] }
 
 const errors = {
-  en: { json: 'The AI response could not be parsed as JSON.', format: 'The AI response format is invalid.', copy: 'The AI response did not include a title and CTA.', caption: 'The AI response did not include a caption.', focalPoint: 'The AI response did not include a usable position.', models: 'Could not fetch the Ollama model list', detect: 'Local Ollama could not be detected. Make sure Ollama is running.', connect: 'Could not connect to Ollama', response: 'Ollama returned no response body.' },
-  ja: { json: 'AIの応答をJSONとして読み取れませんでした。', format: 'AIの応答形式が正しくありません。', copy: 'AIからタイトルとCTAを取得できませんでした。', caption: 'AIからキャプションを取得できませんでした。', focalPoint: 'AIから位置情報を取得できませんでした。', models: 'Ollamaのモデル一覧を取得できませんでした', detect: 'ローカルOllamaを自動検出できませんでした。Ollamaが起動中か確認してください。', connect: 'Ollamaへの接続に失敗しました', response: 'Ollamaから応答本文を取得できませんでした。' },
+  en: { json: 'The AI response could not be parsed as JSON.', format: 'The AI response format is invalid.', copy: 'The AI response did not include a title and CTA.', caption: 'The AI response did not include a caption.', focalPoint: 'The AI response did not include a usable position.', style: 'The AI response did not include a recognized style.', models: 'Could not fetch the Ollama model list', detect: 'Local Ollama could not be detected. Make sure Ollama is running.', connect: 'Could not connect to Ollama', response: 'Ollama returned no response body.' },
+  ja: { json: 'AIの応答をJSONとして読み取れませんでした。', format: 'AIの応答形式が正しくありません。', copy: 'AIからタイトルとCTAを取得できませんでした。', caption: 'AIからキャプションを取得できませんでした。', focalPoint: 'AIから位置情報を取得できませんでした。', style: 'AIから有効なスタイルを取得できませんでした。', models: 'Ollamaのモデル一覧を取得できませんでした', detect: 'ローカルOllamaを自動検出できませんでした。Ollamaが起動中か確認してください。', connect: 'Ollamaへの接続に失敗しました', response: 'Ollamaから応答本文を取得できませんでした。' },
 } as const
 const captionStyleHints: Record<CaptionPlatform, { en: string; ja: string }> = {
   instagram: { en: 'Instagram caption style: a warm, engaging hook, then 8-15 relevant hashtags.', ja: 'Instagramのキャプション向け：親しみやすく惹きつける文章の後に、関連ハッシュタグを8〜15個。' },
@@ -47,10 +50,21 @@ export function parseAiCopy(raw: string, language: Language = 'ja'): AiCopy {
 }
 export function blobToBase64(blob: Blob): Promise<string> { return new Promise((resolve, reject) => { const reader = new FileReader(); reader.onload = () => resolve(String(reader.result).split(',')[1] ?? ''); reader.onerror = () => reject(reader.error); reader.readAsDataURL(blob) }) }
 function ollamaApiUrl(baseUrl: string, path: 'tags' | 'generate', provider: AiProviderId) { return provider === 'ollama-cloud' ? `/api/ollama?path=api/${path}&provider=cloud` : `${normalizeOllamaUrl(baseUrl)}/api/${path}` }
+// The `/api/ollama` proxy (see api/ollama.ts) returns a specific, actionable JSON error body when
+// misconfigured server-side - e.g. {"error":"OLLAMA_CLOUD_API_KEY is not configured."} - which is
+// far more useful to show than a bare status code. Falls back to raw text, then nothing, since a
+// local Ollama's own error responses aren't guaranteed to be JSON at all.
+async function readErrorDetail(response: Response): Promise<string> {
+  try {
+    const text = await response.text(); if (!text) return ''
+    try { const parsed = JSON.parse(text) as { error?: string }; if (typeof parsed.error === 'string' && parsed.error) return parsed.error.slice(0, 160) } catch { /* not JSON - fall through to raw text */ }
+    return text.slice(0, 160)
+  } catch { return '' }
+}
 
 export async function listOllamaModels(baseUrl: string, provider: AiProviderId = 'ollama-local', signal?: AbortSignal, language: Language = 'ja'): Promise<OllamaModel[]> {
   const response = await fetch(ollamaApiUrl(baseUrl, 'tags', provider), { signal })
-  if (!response.ok) throw new Error(`${errors[language].models} (${response.status})`)
+  if (!response.ok) { const detail = await readErrorDetail(response); throw new Error(`${errors[language].models} (${response.status})${detail ? `: ${detail}` : ''}`) }
   const payload = await response.json() as { models?: OllamaModel[] }
   return payload.models ?? []
 }
@@ -79,7 +93,7 @@ export function buildCopyPrompt(options: { direction?: string; customDirection?:
 export async function generateAiCopy(options: { baseUrl: string; provider?: AiProviderId; model: string; image: Blob; direction?: string; customDirection?: string; formatName?: string; language?: Language; signal?: AbortSignal }): Promise<AiCopy> {
   const language = options.language ?? 'ja'; const image = await blobToBase64(options.image); const provider = options.provider ?? 'ollama-local'
   const response = await fetch(ollamaApiUrl(options.baseUrl, 'generate', provider), { method: 'POST', headers: { 'Content-Type': 'application/json' }, signal: options.signal, body: JSON.stringify({ model: options.model.trim(), prompt: buildCopyPrompt(options), images: [image], stream: false, format: 'json' }) })
-  if (!response.ok) { const detail = await response.text().catch(() => ''); throw new Error(`${errors[language].connect} (${response.status})${detail ? `: ${detail.slice(0, 120)}` : ''}`) }
+  if (!response.ok) { const detail = await readErrorDetail(response); throw new Error(`${errors[language].connect} (${response.status})${detail ? `: ${detail}` : ''}`) }
   const payload = await response.json() as { response?: string }
   if (!payload.response) throw new Error(errors[language].response)
   return parseAiCopy(payload.response, language)
@@ -118,7 +132,7 @@ export function buildCaptionPrompt(options: { platform: CaptionPlatform; title?:
 export async function generateAiCaption(options: { baseUrl: string; provider?: AiProviderId; model: string; image: Blob; platform: CaptionPlatform; title?: string; direction?: string; customDirection?: string; language?: Language; signal?: AbortSignal }): Promise<AiCaption> {
   const language = options.language ?? 'ja'; const image = await blobToBase64(options.image); const provider = options.provider ?? 'ollama-local'
   const response = await fetch(ollamaApiUrl(options.baseUrl, 'generate', provider), { method: 'POST', headers: { 'Content-Type': 'application/json' }, signal: options.signal, body: JSON.stringify({ model: options.model.trim(), prompt: buildCaptionPrompt(options), images: [image], stream: false, format: 'json' }) })
-  if (!response.ok) { const detail = await response.text().catch(() => ''); throw new Error(`${errors[language].connect} (${response.status})${detail ? `: ${detail.slice(0, 120)}` : ''}`) }
+  if (!response.ok) { const detail = await readErrorDetail(response); throw new Error(`${errors[language].connect} (${response.status})${detail ? `: ${detail}` : ''}`) }
   const payload = await response.json() as { response?: string }
   if (!payload.response) throw new Error(errors[language].response)
   return parseAiCaption(payload.response, language)
@@ -165,8 +179,46 @@ export function buildFocalPointPrompt(language: Language = 'ja') {
 export async function generateAiFocalPoint(options: { baseUrl: string; provider?: AiProviderId; model: string; image: Blob; language?: Language; signal?: AbortSignal }): Promise<AiFocalPoint> {
   const language = options.language ?? 'ja'; const image = await blobToBase64(options.image); const provider = options.provider ?? 'ollama-local'
   const response = await fetch(ollamaApiUrl(options.baseUrl, 'generate', provider), { method: 'POST', headers: { 'Content-Type': 'application/json' }, signal: options.signal, body: JSON.stringify({ model: options.model.trim(), prompt: buildFocalPointPrompt(language), images: [image], stream: false, format: 'json' }) })
-  if (!response.ok) { const detail = await response.text().catch(() => ''); throw new Error(`${errors[language].connect} (${response.status})${detail ? `: ${detail.slice(0, 120)}` : ''}`) }
+  if (!response.ok) { const detail = await readErrorDetail(response); throw new Error(`${errors[language].connect} (${response.status})${detail ? `: ${detail}` : ''}`) }
   const payload = await response.json() as { response?: string }
   if (!payload.response) throw new Error(errors[language].response)
   return parseAiFocalPoint(payload.response, language)
+}
+
+// Another non-copywriting use of the same vision capability: rather than writing marketing text
+// or locating a subject, this asks the model to act as a design assistant and pick the ONE
+// motion/color style (out of all 18 - see reel.ts) whose mood fits the photo, so a still image or
+// a whole project's video doesn't need to be styled by manually browsing the pattern grid. Like
+// focal-point detection, the model still can't produce a picture or video itself - it picks an id
+// from a fixed list, and the app's existing deterministic renderer does the actual work of
+// generating the styled image/video frames from that choice.
+export function buildStylePrompt(language: Language = 'ja') {
+  const list = VIDEO_PATTERNS.map(item => `${item.id}: ${item.description[language]}`).join('\n')
+  return language === 'en' ? [
+    'You are a design assistant choosing a video/photo editing style. Look at this photo and pick the ONE style below whose color grade, mood, and energy best fits its content and feeling.',
+    list,
+    'Respond with JSON only: {"patternId":"<exactly one id from the list above>"}',
+  ].join('\n') : [
+    'あなたは動画・写真の編集スタイルを選ぶデザインアシスタントです。この写真を見て、色調・雰囲気・テンポが内容や印象に最も合うスタイルを次の一覧から1つだけ選んでください。',
+    list,
+    'JSONだけを返してください。形式: {"patternId":"上の一覧にあるidを1つだけ"}',
+  ].join('\n')
+}
+export function parseAiStyleSuggestion(raw: string, language: Language = 'ja'): AiStyleSuggestion {
+  const cleaned = raw.trim().replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '')
+  let value: unknown
+  try { value = JSON.parse(cleaned) } catch { const match = cleaned.match(/\{[\s\S]*\}/); if (!match) throw new Error(errors[language].json); value = JSON.parse(match[0]) }
+  if (!value || typeof value !== 'object') throw new Error(errors[language].format)
+  const candidate = value as Record<string, unknown>
+  const id = typeof candidate.patternId === 'string' ? candidate.patternId.trim() : ''
+  if (!isVideoPatternId(id)) throw new Error(errors[language].style)
+  return { patternId: id }
+}
+export async function generateAiStyle(options: { baseUrl: string; provider?: AiProviderId; model: string; image: Blob; language?: Language; signal?: AbortSignal }): Promise<AiStyleSuggestion> {
+  const language = options.language ?? 'ja'; const image = await blobToBase64(options.image); const provider = options.provider ?? 'ollama-local'
+  const response = await fetch(ollamaApiUrl(options.baseUrl, 'generate', provider), { method: 'POST', headers: { 'Content-Type': 'application/json' }, signal: options.signal, body: JSON.stringify({ model: options.model.trim(), prompt: buildStylePrompt(language), images: [image], stream: false, format: 'json' }) })
+  if (!response.ok) { const detail = await readErrorDetail(response); throw new Error(`${errors[language].connect} (${response.status})${detail ? `: ${detail}` : ''}`) }
+  const payload = await response.json() as { response?: string }
+  if (!payload.response) throw new Error(errors[language].response)
+  return parseAiStyleSuggestion(payload.response, language)
 }

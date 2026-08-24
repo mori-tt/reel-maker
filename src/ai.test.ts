@@ -1,5 +1,5 @@
-import { describe, expect, it } from 'vitest'
-import { buildCaptionPrompt, buildCopyPrompt, buildFocalPointPrompt, getLocalOllamaCandidates, isHeicFile, normalizeOllamaUrl, parseAiCaption, parseAiCopy, parseAiFocalPoint, selectVisionModel, supportsVision } from './ai'
+import { afterEach, describe, expect, it, vi } from 'vitest'
+import { buildCaptionPrompt, buildCopyPrompt, buildFocalPointPrompt, buildStylePrompt, getLocalOllamaCandidates, isHeicFile, listOllamaModels, normalizeOllamaUrl, parseAiCaption, parseAiCopy, parseAiFocalPoint, parseAiStyleSuggestion, selectVisionModel, supportsVision } from './ai'
 
 describe('HEIC support', () => {
   it('recognizes HEIC and HEIF by mime type or extension', () => {
@@ -131,5 +131,61 @@ describe('AI focal point detection', () => {
     expect(en).toContain('subject')
     expect(en).toContain('grid')
     expect(en).not.toMatch(/[ぁ-んァ-ヶ一-龠々ー]/)
+  })
+})
+
+describe('AI style suggestion', () => {
+  it('accepts any valid pattern id from the full 18-pattern catalog', () => {
+    expect(parseAiStyleSuggestion('{"patternId":"cinematic"}')).toEqual({ patternId: 'cinematic' })
+    expect(parseAiStyleSuggestion('{"patternId":"kawaii"}')).toEqual({ patternId: 'kawaii' })
+    expect(parseAiStyleSuggestion('{"patternId":"luxury"}')).toEqual({ patternId: 'luxury' })
+  })
+
+  it('is tolerant of surrounding whitespace and a markdown fence', () => {
+    expect(parseAiStyleSuggestion('```json\n{"patternId":" retrowave "}\n```')).toEqual({ patternId: 'retrowave' })
+  })
+
+  it('rejects an id outside the known pattern catalog rather than silently accepting it', () => {
+    expect(() => parseAiStyleSuggestion('{"patternId":"studio-ghibli"}')).toThrow('スタイル')
+    expect(() => parseAiStyleSuggestion('{"cell":"top-left"}')).toThrow('スタイル')
+  })
+
+  it('builds a prompt listing every pattern id as a design choice, not a copywriting task', () => {
+    const ja = buildStylePrompt('ja')
+    expect(ja).toContain('デザインアシスタント')
+    expect(ja).toContain('cinematic:')
+    expect(ja).toContain('kawaii:')
+    expect(ja).toMatch(/\{"patternId"/)
+    const en = buildStylePrompt('en')
+    expect(en).toContain('design assistant')
+    expect(en).toContain('cinematic:')
+    expect(en).not.toMatch(/[ぁ-んァ-ヶ一-龠々ー]/)
+  })
+})
+
+describe('listOllamaModels error handling', () => {
+  afterEach(() => { vi.unstubAllGlobals() })
+
+  // The /api/ollama proxy returns a specific, actionable reason (e.g. a missing server-side API
+  // key) as JSON - surfacing that beats a bare "models (503)" status code, especially since this
+  // is exactly what tells a user *why* the Ollama Cloud button can't be used yet.
+  it('surfaces a JSON error body from the proxy instead of just the status code', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => new Response(JSON.stringify({ error: 'OLLAMA_CLOUD_API_KEY is not configured.' }), { status: 503 })))
+    await expect(listOllamaModels('https://example.com', 'ollama-cloud', undefined, 'en')).rejects.toThrow('OLLAMA_CLOUD_API_KEY is not configured.')
+  })
+
+  it('falls back to raw text when the error body is not JSON', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => new Response('Service Unavailable', { status: 503 })))
+    await expect(listOllamaModels('http://localhost:11434', 'ollama-local', undefined, 'en')).rejects.toThrow('Service Unavailable')
+  })
+
+  it('falls back to just the status code when there is no error body at all', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => new Response('', { status: 500 })))
+    await expect(listOllamaModels('http://localhost:11434', 'ollama-local', undefined, 'en')).rejects.toThrow('(500)')
+  })
+
+  it('returns the model list on success', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => new Response(JSON.stringify({ models: [{ name: 'gemma3:4b' }] }), { status: 200 })))
+    await expect(listOllamaModels('http://localhost:11434')).resolves.toEqual([{ name: 'gemma3:4b' }])
   })
 })

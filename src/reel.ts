@@ -140,4 +140,18 @@ export function maxSecondsPerImage(slideCount: number): number {
 }
 const MIME_TYPES = ['video/webm;codecs=av01', 'video/webm;codecs=vp9', 'video/webm;codecs=vp8', 'video/webm']
 export function getMimeType(isSupported: (type: string) => boolean) { return MIME_TYPES.find(isSupported) ?? 'video/webm' }
+
+// A project-wide logo/watermark overlay (upload once, applies to every slide) - see the
+// `watermark` state in App.tsx and drawWatermark, which calls this to know where to place it. A
+// pure function so the corner-placement math is unit-testable without a real canvas/image.
+export type WatermarkPosition = 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right'
+export type WatermarkRect = { x: number; y: number; width: number; height: number }
+export function watermarkRect(position: WatermarkPosition, frameWidth: number, frameHeight: number, imageAspectRatio: number, scale: number): WatermarkRect {
+  const margin = frameWidth * .04
+  const width = frameWidth * clamp(scale, .05, .6)
+  const height = imageAspectRatio > 0 ? width / imageAspectRatio : width
+  const x = position.endsWith('right') ? frameWidth - margin - width : margin
+  const y = position.startsWith('bottom') ? frameHeight - margin - height : margin
+  return { x, y, width, height }
+}
 export function nextFrameDelayMs(start: number, frameIndex: number, fps: number, now: number): number { return Math.max(0, start + (frameIndex * 1000) / fps - now) }
