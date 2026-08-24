@@ -1,7 +1,9 @@
 export type FrameState = { index: number; progress: number }
 export type VideoPatternId = 'cinematic' | 'dynamic' | 'minimal' | 'album' | 'social' | 'noir' | 'neon' | 'polaroid' | 'vhs' | 'glow' | 'comic' | 'editorial'
-export type VideoFormatId = 'reel' | 'story' | 'feed-portrait' | 'square' | 'shorts'
+export type VideoFormatId = 'reel' | 'story' | 'feed-portrait' | 'square' | 'shorts' | 'tiktok' | 'youtube-video'
 export type VideoQualityId = 'standard' | 'high'
+export type Platform = 'instagram' | 'tiktok' | 'youtube'
+export const PLATFORMS: readonly Platform[] = ['instagram', 'tiktok', 'youtube']
 
 export type LocalizedText = { en: string; ja: string }
 export type PatternDecoration = 'letterbox' | 'vignette' | 'frame' | 'badge' | 'none' | 'grain' | 'scanlines' | 'polaroid' | 'tracking' | 'glow' | 'halftone' | 'blockframe'
@@ -9,7 +11,11 @@ export type PatternDecoration = 'letterbox' | 'vignette' | 'frame' | 'badge' | '
 // App.tsx's drawFrame. 'default' is centered, bold, soft shadow (the original, only) look.
 export type TextStyle = 'default' | 'minimal' | 'left' | 'upper' | 'glow'
 export type VideoPattern = { id: VideoPatternId; name: LocalizedText; description: LocalizedText; accent: string; copyDirection: LocalizedText; filter: string; decoration: PatternDecoration; textStyle: TextStyle }
-export type VideoFormat = { id: VideoFormatId; name: LocalizedText; description: LocalizedText; width: number; height: number; safeTop: number; safeBottom: number; fileName: string }
+// recommendedMaxSeconds is soft guidance only (shown as a hint, never enforced) - platforms revise
+// their actual limits often enough that hard-coding one as a strict cap would go stale and could
+// block a video that's perfectly valid. safeTop/safeBottom are fractions of height to keep clear of
+// that platform's own UI chrome (captions, like/comment/share icons, etc.) when text is centered.
+export type VideoFormat = { id: VideoFormatId; platform: Platform; name: LocalizedText; description: LocalizedText; width: number; height: number; safeTop: number; safeBottom: number; fileName: string; recommendedMaxSeconds: number }
 export type VideoQuality = { id: VideoQualityId; name: LocalizedText; fps: number; bitsPerSecond: number; scale: number; description: LocalizedText }
 export type PatternFrame = { scale: number; translateX: number; translateY: number; rotation: number; imageOpacity: number; textOpacity: number; textTranslateY: number; textScale: number; overlayOpacity: number; flashOpacity: number }
 
@@ -32,11 +38,13 @@ export const VIDEO_PATTERNS: readonly VideoPattern[] = [
 ] as const
 
 export const VIDEO_FORMATS: readonly VideoFormat[] = [
-  { id: 'reel', name: { en: 'Instagram Reel', ja: 'Instagramリール' }, description: { en: '9:16 vertical short video', ja: '9:16・縦型ショート' }, width: 1080, height: 1920, safeTop: .08, safeBottom: .18, fileName: 'instagram-reel' },
-  { id: 'story', name: { en: 'Instagram Story', ja: 'Instagramストーリー' }, description: { en: '9:16 with top and bottom UI safe areas', ja: '9:16・上下UI安全領域' }, width: 1080, height: 1920, safeTop: .14, safeBottom: .2, fileName: 'instagram-story' },
-  { id: 'feed-portrait', name: { en: 'Portrait feed', ja: 'フィード縦型' }, description: { en: '4:5 Instagram post', ja: '4:5・Instagram投稿' }, width: 1080, height: 1350, safeTop: .06, safeBottom: .1, fileName: 'feed-portrait' },
-  { id: 'square', name: { en: 'Square feed', ja: 'フィード正方形' }, description: { en: '1:1 social post', ja: '1:1・汎用SNS投稿' }, width: 1080, height: 1080, safeTop: .06, safeBottom: .1, fileName: 'feed-square' },
-  { id: 'shorts', name: { en: 'YouTube Shorts', ja: 'YouTube Shorts' }, description: { en: '9:16 with right-side UI allowance', ja: '9:16・右側UIを考慮' }, width: 1080, height: 1920, safeTop: .08, safeBottom: .16, fileName: 'youtube-shorts' },
+  { id: 'reel', platform: 'instagram', name: { en: 'Instagram Reel', ja: 'Instagramリール' }, description: { en: '9:16 vertical short video', ja: '9:16・縦型ショート' }, width: 1080, height: 1920, safeTop: .08, safeBottom: .18, fileName: 'instagram-reel', recommendedMaxSeconds: 90 },
+  { id: 'story', platform: 'instagram', name: { en: 'Instagram Story', ja: 'Instagramストーリー' }, description: { en: '9:16 with top and bottom UI safe areas', ja: '9:16・上下UI安全領域' }, width: 1080, height: 1920, safeTop: .14, safeBottom: .2, fileName: 'instagram-story', recommendedMaxSeconds: 60 },
+  { id: 'feed-portrait', platform: 'instagram', name: { en: 'Portrait feed', ja: 'フィード縦型' }, description: { en: '4:5 Instagram post', ja: '4:5・Instagram投稿' }, width: 1080, height: 1350, safeTop: .06, safeBottom: .1, fileName: 'feed-portrait', recommendedMaxSeconds: 60 },
+  { id: 'square', platform: 'instagram', name: { en: 'Square feed', ja: 'フィード正方形' }, description: { en: '1:1 social post', ja: '1:1・汎用SNS投稿' }, width: 1080, height: 1080, safeTop: .06, safeBottom: .1, fileName: 'feed-square', recommendedMaxSeconds: 60 },
+  { id: 'tiktok', platform: 'tiktok', name: { en: 'TikTok', ja: 'TikTok' }, description: { en: '9:16 with TikTok UI safe areas', ja: '9:16・TikTokのUIを考慮' }, width: 1080, height: 1920, safeTop: .08, safeBottom: .22, fileName: 'tiktok', recommendedMaxSeconds: 60 },
+  { id: 'shorts', platform: 'youtube', name: { en: 'YouTube Shorts', ja: 'YouTube Shorts' }, description: { en: '9:16 with right-side UI allowance', ja: '9:16・右側UIを考慮' }, width: 1080, height: 1920, safeTop: .08, safeBottom: .16, fileName: 'youtube-shorts', recommendedMaxSeconds: 60 },
+  { id: 'youtube-video', platform: 'youtube', name: { en: 'YouTube video', ja: 'YouTube動画' }, description: { en: '16:9 standard landscape upload', ja: '16:9・横型の通常動画' }, width: 1920, height: 1080, safeTop: .05, safeBottom: .08, fileName: 'youtube-video', recommendedMaxSeconds: 600 },
 ] as const
 
 export const VIDEO_QUALITIES: readonly VideoQuality[] = [

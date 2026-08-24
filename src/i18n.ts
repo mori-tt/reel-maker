@@ -22,6 +22,11 @@ const translations = {
     exportImages: 'Export as images', exportingImages: 'Rendering images…',
     bgmTitle: 'Background music', bgmHint: 'Upload your own track — it will be trimmed or looped to match the video length, with a fade-out at the end.', bgmAdd: 'Add a music file', bgmVolume: 'Volume', bgmRemove: 'Remove',
     bgmWebmNote: 'Music is only included in the MP4 export. The older WebM fallback (rare browsers without WebCodecs) stays video-only.',
+    platformInstagram: 'Instagram', platformTiktok: 'TikTok', platformYoutube: 'YouTube',
+    durationOverHint: 'This video is {seconds}s long — {max}s tends to work best for this format. Platform limits change over time, so this is a guideline, not a hard rule.',
+    captionTitle: 'Post caption + hashtags', captionHint: 'One caption for the whole post, styled for {platform}, based on the first photo and your fallback title.', generateCaption: 'Generate caption', captionCopy: 'Copy to clipboard', captionCopied: 'Copied!',
+    shareVideo: 'Share to app…',
+    captionWorking: 'Generating a caption…', captionApplied: 'Caption ready below — copy it when you post.',
   },
   ja: {
     language: '言語', english: 'English', japanese: '日本語', addImages: '画像を追加', buildStory: 'ストーリーを組み立てる', converting: '画像を変換中…', selectPhotos: '写真を選択',
@@ -43,6 +48,11 @@ const translations = {
     exportImages: '画像として書き出す', exportingImages: '画像を生成中…',
     bgmTitle: 'BGM（背景音楽）', bgmHint: 'お好きな音楽ファイルをアップロードできます。動画の長さに合わせて自動でトリミングまたはループし、最後はフェードアウトします。', bgmAdd: '音楽ファイルを追加', bgmVolume: '音量', bgmRemove: '削除',
     bgmWebmNote: 'BGMはMP4書き出し時のみ反映されます。WebCodecs非対応の一部ブラウザで使われる旧WebM形式では、動画のみになります。',
+    platformInstagram: 'Instagram', platformTiktok: 'TikTok', platformYoutube: 'YouTube',
+    durationOverHint: 'この動画は{seconds}秒です。この用途では{max}秒以内が扱いやすい目安です（各プラットフォームの上限は変わることがあるため、厳密な制限ではなく目安としてご利用ください）。',
+    captionTitle: '投稿キャプション＋ハッシュタグ', captionHint: '最初の写真と共通タイトルをもとに、{platform}向けのキャプションを投稿全体で1つ生成します。', generateCaption: 'キャプションを生成', captionCopy: 'クリップボードにコピー', captionCopied: 'コピーしました！',
+    shareVideo: 'アプリに共有…',
+    captionWorking: 'キャプションを生成しています…', captionApplied: '下にキャプションができました。投稿時にコピーしてお使いください。',
   },
 } as const
 

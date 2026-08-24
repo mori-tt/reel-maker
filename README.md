@@ -8,7 +8,9 @@
 
 ## English
 
-Frameflow turns a set of photos into a polished short video sized for wherever you're posting it — Instagram Reel / Story (9:16), portrait (4:5) or square (1:1) feed posts, YouTube Shorts (9:16). Regular use — adding photos, converting HEIC, picking a motion style, exporting — happens entirely in your browser; no photo is sent anywhere for that. A photo only leaves your device if you turn on AI copy suggestions and use Local Ollama or Ollama Cloud (Chrome's on-device AI never sends the image off your device either); see [AI copy suggestions](#ai-copy-suggestions) below for which is which.
+Frameflow turns a set of photos into a polished short video sized for wherever you're posting it — Instagram (Reel / Story / feed), TikTok, or YouTube (Shorts or standard 16:9 video). Regular use — adding photos, converting HEIC, picking a motion style, exporting — happens entirely in your browser; no photo is sent anywhere for that. A photo only leaves your device if you turn on AI copy suggestions and use Local Ollama or Ollama Cloud (Chrome's on-device AI never sends the image off your device either); see [AI copy suggestions](#ai-copy-suggestions) below for which is which.
+
+Frameflow doesn't publish or upload directly to Instagram, TikTok, or YouTube — that would require each platform's own developer registration, OAuth, and (for most of them) business/app review, which is a different kind of project from a client-side tool like this. Instead, it focuses on what a browser-only app can do well: correct formats and safe areas for each platform, a ready-to-copy caption + hashtags, and (where the browser/device supports it) handing the finished file straight to that platform's own app via the OS share sheet.
 
 This README covers setup, deployment, and configuration. For a walkthrough of using the app itself (adding photos, motion styles, AI copy, exporting), see [USER_GUIDE.md](USER_GUIDE.md).
 
@@ -41,8 +43,14 @@ This README covers setup, deployment, and configuration. For a walkthrough of us
 - Motion amount (zoom/pan/rotation) scales with the actual per-image duration, so an 8s hold moves proportionally more than a 2s one instead of both using the same fixed range
 - Duration per image automatically adjusts with photo count — the minimum rises and the maximum comes down as you add more, so a large batch neither flickers by nor runs unexpectedly long
 - Constant-bitrate encoding, so export quality never dips below the selected preset regardless of how visually complex the photos are
-- Output formats: Instagram Reel / Story, portrait/square feed, YouTube Shorts, each with format-aware safe areas
-- MP4 (H.264) export at the resolution of the chosen format (1080 wide; 1920/1350/1080 tall); automatically falls back to WebM on browsers without WebCodecs
+- Output formats grouped by platform, each with format-aware safe areas so text/decoration stays clear of that platform's own UI:
+  - **Instagram** — Reel, Story, portrait feed (4:5), square feed (1:1)
+  - **TikTok** — 9:16, with extra bottom clearance for TikTok's caption/username/sound UI
+  - **YouTube** — Shorts (9:16) and standard long-form video (16:9 landscape)
+- A soft duration hint (not a hard limit) when your video runs longer than what tends to work well for the selected format/platform — platform limits change over time, so this is guidance, not an enforced cutoff
+- An AI-generated whole-post caption + hashtags (distinct from the per-image on-screen title/CTA), styled toward the selected platform's conventions, with a one-click copy-to-clipboard button for pasting into the platform's own post composer
+- A native "Share to app…" button after export (on browsers/devices that support the Web Share API with files, mainly mobile) to hand the exported video straight to the Instagram/TikTok/YouTube app's share sheet
+- MP4 (H.264) export at the resolution of the chosen format; automatically falls back to WebM on browsers without WebCodecs
 
 ### Getting started
 
@@ -185,7 +193,9 @@ npm run build
 
 ## 日本語
 
-画像から、投稿先に合わせたショート動画を作るWebアプリです。Instagramリール／ストーリー（9:16）、フィード縦型（4:5）・正方形（1:1）投稿、YouTube Shorts（9:16）に対応しています。通常の操作（画像の追加・HEIC変換・動画パターンの選択・書き出しなど）はすべてブラウザ内だけで完結し、画像はどこにも送信されません。画像が端末の外へ送信されるのは、「AIコピー提案」機能でローカルOllamaまたはOllama Cloudを使ったときだけです（Chrome端末内AIも画像を端末の外に出しません）。どの方式がどう違うかは下記[AIコピー提案](#aiコピー提案)を参照してください。
+画像から、投稿先に合わせたショート動画を作るWebアプリです。Instagram（リール／ストーリー／フィード）、TikTok、YouTube（Shorts、または16:9の通常動画）に対応しています。通常の操作（画像の追加・HEIC変換・動画パターンの選択・書き出しなど）はすべてブラウザ内だけで完結し、画像はどこにも送信されません。画像が端末の外へ送信されるのは、「AIコピー提案」機能でローカルOllamaまたはOllama Cloudを使ったときだけです（Chrome端末内AIも画像を端末の外に出しません）。どの方式がどう違うかは下記[AIコピー提案](#aiコピー提案)を参照してください。
+
+FrameflowはInstagram・TikTok・YouTubeへの直接投稿・アップロードには対応していません。それには各プラットフォームでの開発者登録・OAuth認証、多くの場合ビジネス確認やアプリ審査が必要で、本アプリのようなクライアントサイドのツールとは別種のプロジェクトになります。代わりに、ブラウザ完結のアプリとして得意なこと——各プラットフォームに合った用途・安全領域、コピペしやすいキャプション＋ハッシュタグの生成、対応ブラウザ・端末であればOSの共有シートを通じて完成ファイルをそのアプリへ直接渡すこと——に注力しています。
 
 このREADMEはセットアップ・デプロイ・設定についての内容です。アプリの使い方（写真の追加、動画パターン、AIコピー、書き出しなど）は[USER_GUIDE.md](USER_GUIDE.md)を参照してください。
 
@@ -218,8 +228,14 @@ npm run build
 - 動きの量（ズーム・パン・回転）が1枚あたりの表示時間に応じて調整され、8秒の表示は2秒の表示より比例して大きく動く（固定量ではない）
 - 写真の枚数に応じて1枚あたりの表示時間の下限・上限が自動的に調整され、枚数が多くても切り替えが速すぎたり、逆に合計が長くなりすぎたりしない
 - 固定ビットレートでエンコードするため、写真の内容が複雑でも選んだプリセットの画質を下回らない
-- 出力用途：Instagramリール／ストーリー、フィード縦型・正方形、YouTube Shorts。それぞれ用途別の安全領域を最適化
-- 選んだ用途の解像度（幅1080px、高さ1920／1350／1080px）でMP4（H.264）書き出し。WebCodecs非対応ブラウザでは自動的にWebMへフォールバック
+- 出力用途はプラットフォームごとにグループ化。それぞれのUIと干渉しないよう安全領域を最適化：
+  - **Instagram** — リール、ストーリー、フィード縦型（4:5）、フィード正方形（1:1）
+  - **TikTok** — 9:16。TikTokのキャプション／ユーザー名／サウンド表示分、下部の余白を多めに確保
+  - **YouTube** — Shorts（9:16）と通常動画（16:9・横型）
+- この用途では何秒くらいが扱いやすいかのソフトな目安表示（厳密な上限ではありません）。各プラットフォームの制限は変わることがあるため、あくまで目安です
+- 投稿全体で1つのキャプション＋ハッシュタグをAIで生成（画像内のタイトル・CTAとは別物）。選んだプラットフォーム向けのトーンに調整され、ワンクリックでクリップボードにコピーして各アプリの投稿欄に貼り付け可能
+- 書き出し後に表示される「アプリに共有…」ボタン（Web Share APIのファイル共有に対応したブラウザ・端末、主にスマートフォン向け）。書き出した動画をInstagram・TikTok・YouTubeアプリの共有画面へそのまま渡せます
+- 選んだ用途の解像度でMP4（H.264）書き出し。WebCodecs非対応ブラウザでは自動的にWebMへフォールバック
 
 ### ローカル起動
 

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { buildCopyPrompt, getLocalOllamaCandidates, isHeicFile, normalizeOllamaUrl, parseAiCopy, selectVisionModel, supportsVision } from './ai'
+import { buildCaptionPrompt, buildCopyPrompt, getLocalOllamaCandidates, isHeicFile, normalizeOllamaUrl, parseAiCaption, parseAiCopy, selectVisionModel, supportsVision } from './ai'
 
 describe('HEIC support', () => {
   it('recognizes HEIC and HEIF by mime type or extension', () => {
@@ -55,5 +55,45 @@ describe('Ollama helpers', () => {
     expect(prompt).toContain('English copywriter')
     expect(prompt).toContain('Instagram Story')
     expect(prompt).not.toMatch(/[ぁ-んァ-ヶ一-龠々ー]/)
+  })
+})
+
+describe('post caption + hashtags', () => {
+  it('parses a caption response and normalizes hashtags to always have a leading #', () => {
+    const response = '{"caption":"海辺の一日を振り返って","hashtags":["旅行","#夏の思い出"," beach "]}'
+    expect(parseAiCaption(response)).toEqual({ caption: '海辺の一日を振り返って', hashtags: ['#旅行', '#夏の思い出', '#beach'] })
+  })
+
+  it('parses JSON even when the model wraps it in a markdown fence', () => {
+    const response = '```json\n{"caption":"hello","hashtags":["a","b"]}\n```'
+    expect(parseAiCaption(response)).toEqual({ caption: 'hello', hashtags: ['#a', '#b'] })
+  })
+
+  it('tolerates a missing hashtags array instead of throwing', () => {
+    expect(parseAiCaption('{"caption":"hello"}')).toEqual({ caption: 'hello', hashtags: [] })
+  })
+
+  it('rejects a response with no caption field', () => {
+    expect(() => parseAiCaption('{"hashtags":["a"]}')).toThrow('キャプション')
+  })
+
+  it('caps hashtag count and caption length so a runaway response cannot break the UI', () => {
+    const manyTags = Array.from({ length: 30 }, (_, i) => `tag${i}`)
+    const result = parseAiCaption(JSON.stringify({ caption: 'x'.repeat(3000), hashtags: manyTags }))
+    expect(result.hashtags.length).toBe(20)
+    expect(result.caption.length).toBe(2200)
+  })
+
+  it('tailors the prompt style per platform and includes the on-screen title for context', () => {
+    const instagram = buildCaptionPrompt({ platform: 'instagram', title: '海辺の一日', language: 'ja' })
+    expect(instagram).toContain('instagram')
+    expect(instagram).toContain('海辺の一日')
+    expect(instagram).toContain('8〜15個')
+    const tiktok = buildCaptionPrompt({ platform: 'tiktok', language: 'en' })
+    expect(tiktok).toContain('tiktok')
+    expect(tiktok).toContain('4-8')
+    const youtube = buildCaptionPrompt({ platform: 'youtube', language: 'en', customDirection: 'Mention it was shot on an iPhone' })
+    expect(youtube).toContain('youtube')
+    expect(youtube).toContain('Mention it was shot on an iPhone')
   })
 })

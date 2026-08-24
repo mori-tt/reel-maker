@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import { chromeAiAvailabilityMessage, generateChromeAiCopy, getChromeAiAvailability, getChromeLanguageModel, prepareChromeAi } from './chrome-ai'
+import { chromeAiAvailabilityMessage, generateChromeAiCaption, generateChromeAiCopy, getChromeAiAvailability, getChromeLanguageModel, prepareChromeAi } from './chrome-ai'
 
 describe('Chrome built-in AI', () => {
   it('reports a distinct no-api status when LanguageModel is absent (e.g. Safari/Firefox)', async () => {
@@ -49,5 +49,20 @@ describe('Chrome built-in AI', () => {
       expect.objectContaining({ role: 'user', content: expect.arrayContaining([{ type: 'image', value: image }]) }),
     ], expect.objectContaining({ responseConstraint: expect.objectContaining({ type: 'object' }) }))
     expect(destroy).toHaveBeenCalled()
+  })
+
+  it('generates a whole-post caption tailored to the given platform', async () => {
+    const destroy = vi.fn()
+    const prompt = vi.fn().mockResolvedValue('{"caption":"海辺の午後","hashtags":["travel","japan"]}')
+    const api = { availability: vi.fn().mockResolvedValue('available' as const), create: vi.fn().mockResolvedValue({ prompt, destroy }) }
+    const image = new Blob(['image'], { type: 'image/jpeg' })
+    await expect(generateChromeAiCaption({ image, platform: 'instagram', title: '海辺の一日', language: 'ja', api })).resolves.toEqual({ caption: '海辺の午後', hashtags: ['#travel', '#japan'] })
+    expect(prompt).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({ responseConstraint: expect.objectContaining({ properties: expect.objectContaining({ hashtags: expect.anything() }) }) }))
+    expect(destroy).toHaveBeenCalled()
+  })
+
+  it('surfaces the no-api message when generating a caption without the API', async () => {
+    const image = new Blob(['image'], { type: 'image/jpeg' })
+    await expect(generateChromeAiCaption({ image, platform: 'tiktok', language: 'ja' })).rejects.toThrow('Ollama')
   })
 })

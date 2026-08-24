@@ -37,19 +37,23 @@ Further down, in **"Copy for every image"**, each photo also gets two compositio
 
 ### 2. Choose a video format and quality
 
-Under **"Video format"**, pick the output that matches where you're posting:
+Under **"Video format"**, pick the output that matches where you're posting. Formats are grouped by platform:
 
-| Format | Aspect ratio | Notes |
-|---|---|---|
-| Instagram Reel | 9:16 | Standard vertical short video |
-| Instagram Story | 9:16 | Extra top/bottom margin for Instagram's own UI |
-| Portrait feed | 4:5 | Regular Instagram post |
-| Square feed | 1:1 | General-purpose social post |
-| YouTube Shorts | 9:16 | Extra right-side margin for YouTube's UI |
+| Platform | Format | Aspect ratio | Notes |
+|---|---|---|---|
+| Instagram | Reel | 9:16 | Standard vertical short video |
+| Instagram | Story | 9:16 | Extra top/bottom margin for Instagram's own UI |
+| Instagram | Portrait feed | 4:5 | Regular Instagram post |
+| Instagram | Square feed | 1:1 | General-purpose social post |
+| TikTok | TikTok | 9:16 | Extra bottom margin for TikTok's caption/username/sound UI |
+| YouTube | Shorts | 9:16 | Extra right-side margin for YouTube's UI |
+| YouTube | Video | 16:9 | Standard landscape upload |
 
 The dashed rectangle in the preview shows the "safe area" — keep important content inside it so it isn't covered by the platform's own buttons/UI.
 
-Below that, choose **Standard** (30fps, smaller file) or **High quality** (60fps, smoother motion, larger file). Both render 1080px wide; the height comes from the format you picked above (e.g. 1920px for Reel/Story/Shorts, 1350px for portrait feed, 1080px for square feed).
+Below that, choose **Standard** (30fps, smaller file) or **High quality** (60fps, smoother motion, larger file). Both render 1080px wide (1920px wide for the 16:9 YouTube video format); the other dimension comes from the format you picked above.
+
+If your total video length runs longer than what tends to work well for the selected format, a small note appears under the format picker (e.g. "This video is 90s long — 60s tends to work best for this format"). It's a guideline based on common practice, not an enforced limit — platforms revise their actual rules over time, so treat it as a nudge rather than a hard rule.
 
 ### 3. Titles, captions, and per-image text
 
@@ -98,6 +102,8 @@ Turn on **"AI copy suggestions"** to have AI write a title and CTA for you, base
 
 If something goes wrong, the status message under the provider buttons explains why (for example, the app now specifically detects and explains the case where the public HTTPS site can't reach a local Ollama, rather than showing a generic connection error).
 
+Below the per-image copy generator is a separate **"Post caption + hashtags"** card. This is different from the per-image title/CTA above: it's one caption for the whole post (like what you'd type into Instagram's or TikTok's own caption box), generated from your first photo and fallback title, and styled toward whichever platform your selected format belongs to (Instagram/TikTok favor a hook plus a larger hashtag block; YouTube favors a descriptive sentence plus a few targeted tags). Click **"Generate caption"**, then **"Copy to clipboard"** to grab it for pasting when you post. It uses the same provider you picked above.
+
 ### 7. Preview
 
 The phone-shaped preview on the right plays back your video with the fade/zoom/text timing you'll get in the final export. Use the play button and scrubber to check pacing and text placement before exporting.
@@ -107,6 +113,8 @@ The phone-shaped preview on the right plays back your video with the fade/zoom/t
 Click **"Export video"**. Frameflow renders every frame in the browser and downloads an MP4 (H.264) file named after the format you picked (for example `instagram-reel.mp4`). On browsers without the newer WebCodecs API, it automatically falls back to WebM instead — either way, no upload is involved; the file is generated and downloaded locally.
 
 Prefer stills over (or alongside) video? Click **"Export as images"** instead to download every slide as its own JPEG — useful for an Instagram carousel post or anywhere else you want images rather than a video. Each one uses the same motion style's color grade, decoration, and text, frozen at a clean, fully-opaque moment rather than mid-fade. They download one at a time, named `<format>-01.jpg`, `<format>-02.jpg`, and so on in slide order.
+
+After a video export finishes, a **"Share to app…"** button may appear (this depends on your browser and device — it's mainly available on mobile browsers that support sharing files, like Safari on iOS or Chrome on Android). Tapping it opens your device's native share sheet with the exported video already attached, so you can pick Instagram, TikTok, YouTube, or any other installed app to post directly, instead of finding the file in your downloads first. Frameflow itself never uploads or publishes anything — this just hands the file to an app you choose.
 
 ### 9. Switching languages
 
@@ -153,19 +161,23 @@ Frameflowは、手持ちの写真から投稿先に合わせたショート動�
 
 ### 2. 動画の用途と画質
 
-**「動画の用途」**で、投稿先に合った出力形式を選びます。
+**「動画の用途」**で、投稿先に合った出力形式を選びます。用途はプラットフォームごとにグループ化されています。
 
-| 用途 | 比率 | 備考 |
-|---|---|---|
-| Instagramリール | 9:16 | 標準的な縦型ショート動画 |
-| Instagramストーリー | 9:16 | Instagram UI分の上下余白を確保 |
-| フィード縦型 | 4:5 | 通常のInstagram投稿 |
-| フィード正方形 | 1:1 | 汎用的なSNS投稿 |
-| YouTube Shorts | 9:16 | YouTube UI分の右側余白を考慮 |
+| プラットフォーム | 用途 | 比率 | 備考 |
+|---|---|---|---|
+| Instagram | リール | 9:16 | 標準的な縦型ショート動画 |
+| Instagram | ストーリー | 9:16 | Instagram UI分の上下余白を確保 |
+| Instagram | フィード縦型 | 4:5 | 通常のInstagram投稿 |
+| Instagram | フィード正方形 | 1:1 | 汎用的なSNS投稿 |
+| TikTok | TikTok | 9:16 | TikTokのキャプション／ユーザー名／サウンド表示分、下部の余白を多めに確保 |
+| YouTube | Shorts | 9:16 | YouTube UI分の右側余白を考慮 |
+| YouTube | 動画 | 16:9 | 通常の横型アップロード用 |
 
 プレビュー内の点線枠は「安全領域」です。ここに収まるように配置すると、各プラットフォーム自体のボタン等に隠れません。
 
-その下で、**標準**（30fps・軽量）または**高画質**（60fps・なめらか・ファイルサイズ大）を選べます。幅はいずれも1080pxで、高さは上で選んだ用途によって変わります（Reel/ストーリー/Shortsは1920px、フィード縦型は1350px、フィード正方形は1080px）。
+その下で、**標準**（30fps・軽量）または**高画質**（60fps・なめらか・ファイルサイズ大）を選べます。幅は基本1080px（YouTube動画〈16:9〉は1920px）で、もう一方の辺は上で選んだ用途によって変わります。
+
+動画の合計時間が、選んだ用途で扱いやすいとされる長さを超えると、用途選択の下に小さな注記が表示されます（例：「この動画は90秒です。この用途では60秒以内が扱いやすい目安です」）。これは一般的な傾向に基づく目安であり、厳密な制限ではありません。各プラットフォームの実際のルールは変わることがあるため、参考程度にお使いください。
 
 ### 3. タイトル・CTA・画像ごとの文字
 
@@ -214,6 +226,8 @@ BGMはMP4書き出し時のみ反映されます。新しいWebCodecs APIに対�
 
 うまくいかない場合、各方式ボタンの下にあるステータス表示に理由が出ます（例えば、公開HTTPSサイトからローカルOllamaへ接続できないケースは、単なる接続エラーではなく原因を明示するようになっています）。
 
+画像ごとのコピー生成の下に、別枠で**「投稿キャプション＋ハッシュタグ」**というカードがあります。これは上の画像ごとのタイトル・CTAとは別物で、投稿全体で使う1つのキャプション（Instagramの投稿文やTikTokのキャプション欄に書くようなもの）です。最初の写真と共通タイトルをもとに生成され、選んだ用途が属するプラットフォーム向けのトーンに調整されます（Instagram／TikTokは惹きつける一文＋やや多めのハッシュタグ、YouTubeは説明的な文章＋絞り込んだハッシュタグ）。**「キャプションを生成」**を押し、**「クリップボードにコピー」**で投稿時に使えます。上で選んだAI方式がそのまま使われます。
+
 ### 7. プレビュー
 
 右側のスマートフォン風プレビューで、実際の書き出しと同じフェード・ズーム・文字のタイミングを確認できます。再生ボタンとシークバーで、書き出し前にペース配分や文字の位置を確認しましょう。
@@ -223,6 +237,8 @@ BGMはMP4書き出し時のみ反映されます。新しいWebCodecs APIに対�
 **「動画を書き出す」**を押すと、Frameflowがブラウザ内で全フレームを描画し、選んだ用途に合わせた名前（例：`instagram-reel.mp4`）のMP4（H.264）ファイルをダウンロードします。新しいWebCodecs APIに対応していないブラウザでは自動的にWebMにフォールバックします。いずれの場合もアップロードは発生せず、その場で生成してダウンロードするだけです。
 
 動画ではなく（あるいは動画に加えて）静止画が欲しい場合は、代わりに**「画像として書き出す」**を押してください。各スライドをそれぞれ1枚のJPEGとしてダウンロードします。Instagramのカルーセル投稿など、動画ではなく画像が必要な場面に便利です。選んだ動画パターンと同じ色調・装飾・文字を使い、フェードの途中ではなく完全に不透明でくっきりした状態で書き出されます。`用途名-01.jpg`、`用途名-02.jpg`…という名前でスライド順に1枚ずつダウンロードされます。
+
+動画の書き出しが終わると、**「アプリに共有…」**ボタンが表示されることがあります（お使いのブラウザ・端末に依存し、主にファイル共有に対応したモバイルブラウザ——iOSのSafariやAndroidのChromeなど——で利用できます）。タップすると、書き出した動画が添付された状態で端末標準の共有画面が開くので、Instagram・TikTok・YouTubeなど、インストール済みのアプリを選んでそのまま投稿できます。ダウンロードフォルダから探す手間が省けます。Frameflow自体が何かをアップロード・公開することはなく、選んだアプリにファイルを渡すだけです。
 
 ### 9. 言語の切り替え
 

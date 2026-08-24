@@ -45,7 +45,7 @@ describe('reel timeline', () => {
   })
 
   it('provides social formats and quality presets', () => {
-    expect(VIDEO_FORMATS.map(format => format.id)).toEqual(['reel', 'story', 'feed-portrait', 'square', 'shorts'])
+    expect(VIDEO_FORMATS.map(format => format.id)).toEqual(['reel', 'story', 'feed-portrait', 'square', 'tiktok', 'shorts', 'youtube-video'])
     expect(getVideoFormat('square')).toMatchObject({ width: 1080, height: 1080 })
     expect(getVideoFormat('story').safeTop).toBeGreaterThan(getVideoFormat('reel').safeTop)
     expect(isVideoFormatId('shorts')).toBe(true)
@@ -58,6 +58,25 @@ describe('reel timeline', () => {
     expect(getVideoFormat('reel').name.en).toBe('Instagram Reel')
     expect(getVideoFormat('reel').description.en).not.toMatch(/[ぁ-んァ-ヶ一-龠々ー]/)
     expect(getVideoQuality('high').name.ja).toBe('高画質')
+  })
+
+  it('covers Instagram, TikTok, and YouTube, each with a distinct platform tag', () => {
+    expect(new Set(VIDEO_FORMATS.map(format => format.platform))).toEqual(new Set(['instagram', 'tiktok', 'youtube']))
+    expect(getVideoFormat('tiktok').platform).toBe('tiktok')
+    expect(VIDEO_FORMATS.filter(format => format.platform === 'youtube').map(format => format.id)).toEqual(['shorts', 'youtube-video'])
+    expect(VIDEO_FORMATS.filter(format => format.platform === 'instagram').length).toBe(4)
+  })
+
+  it('gives the one landscape format (regular YouTube video) a 16:9 aspect ratio, everything else 9:16 or narrower', () => {
+    const landscape = getVideoFormat('youtube-video')
+    expect(landscape.width / landscape.height).toBeCloseTo(16 / 9, 2)
+    for (const format of VIDEO_FORMATS) if (format.id !== 'youtube-video') expect(format.width).toBeLessThanOrEqual(format.height)
+  })
+
+  it('gives every format a positive, sane recommended duration hint without hard-enforcing it', () => {
+    for (const format of VIDEO_FORMATS) { expect(format.recommendedMaxSeconds).toBeGreaterThan(0); expect(format.recommendedMaxSeconds).toBeLessThanOrEqual(3600) }
+    // Long-form YouTube tolerates much longer videos than any short-form vertical format.
+    expect(getVideoFormat('youtube-video').recommendedMaxSeconds).toBeGreaterThan(getVideoFormat('tiktok').recommendedMaxSeconds)
   })
 
   it('calculates distinct, bounded motion for every pattern', () => {
