@@ -10,6 +10,8 @@
 
 Frameflow turns a set of photos into a polished 9:16 short video (Instagram Reel / Story, YouTube Shorts, feed posts). Everything — image conversion and video rendering — happens in the browser; nothing is uploaded unless you explicitly choose an external AI provider.
 
+This README covers setup, deployment, and configuration. For a walkthrough of using the app itself (adding photos, motion styles, AI copy, exporting), see [USER_GUIDE.md](USER_GUIDE.md).
+
 ### Features
 
 - Multi-select JPG / PNG / WebP / HEIC / HEIF images
@@ -169,6 +171,8 @@ npm run build
 ## 日本語
 
 画像からInstagram Reels向けの9:16動画を作るWebアプリです。画像変換と動画生成はブラウザ内で行い、外部AIプロバイダーを明示的に選ばない限り画像はどこにも送信されません。
+
+このREADMEはセットアップ・デプロイ・設定についての内容です。アプリの使い方（写真の追加、動画パターン、AIコピー、書き出しなど）は[USER_GUIDE.md](USER_GUIDE.md)を参照してください。
 
 ### 機能
 
