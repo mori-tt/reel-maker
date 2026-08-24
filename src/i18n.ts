@@ -17,6 +17,7 @@ const translations = {
     chromeProvider: 'Chrome on-device AI', localOllama: 'Local Ollama', ollamaCloud: 'Ollama Cloud', aiApplied: 'Copy was applied to the selected images. Review and edit it in the list above.', aiWorking: 'Generating copy for the selected images…', clearConfirm: 'Clears this image’s title and CTA and hides its text.',
     formatTitle: 'Video format', motionTitle: 'Motion style', emptyPreviewLong: 'Add photos to see the preview here', previewAlt: 'Video preview', imageReadError: 'Could not read this image.', imageConvertError: 'Image conversion failed.', chromeChecking: 'Checking Chrome AI and preparing the model…', chromePreparing: 'Preparing Chrome AI model…', chromePrepareError: 'Could not prepare Chrome AI.', aiError: 'AI processing failed.', cloudHint: 'Uses the OLLAMA_CLOUD_API_KEY server environment variable.',
     aiSelectHint: 'Tap the photos below that should get AI copy — only the selected ones are used.', aiNoSelection: 'Tap at least one photo below to select it first.', selectAll: 'Select all', selectNone: 'Clear selection',
+    ollamaHttpsBlocked: 'This page is served over HTTPS, so the browser blocks it from reaching your local Ollama — that is a browser security rule, not an Ollama problem. Use Ollama Cloud here, or run “npm run dev” and open the app at http://localhost to use Local Ollama.',
   },
   ja: {
     language: '言語', english: 'English', japanese: '日本語', addImages: '画像を追加', buildStory: 'ストーリーを組み立てる', converting: '画像を変換中…', selectPhotos: '写真を選択',
@@ -33,6 +34,7 @@ const translations = {
     chromeProvider: 'Chrome端末内AI', localOllama: 'ローカルOllama', ollamaCloud: 'Ollama Cloud', aiApplied: '選択した画像にコピーを反映しました。上の一覧で確認・編集できます。', aiWorking: '選択した画像のコピーを生成しています…', clearConfirm: 'この画像のタイトルとCTAを削除し、文字を非表示にします。',
     formatTitle: '動画の用途', motionTitle: '動画パターン', emptyPreviewLong: '写真を追加すると、ここにプレビューされます', previewAlt: '動画プレビュー', imageReadError: 'この画像を読み込めませんでした。', imageConvertError: '画像の変換に失敗しました。', chromeChecking: 'Chrome AIを確認し、必要なモデルを準備しています…', chromePreparing: 'Chrome AIモデルを準備中…', chromePrepareError: 'Chrome AIを準備できませんでした。', aiError: 'AI処理でエラーが発生しました。', cloudHint: 'サーバー環境変数 OLLAMA_CLOUD_API_KEY を使用します。',
     aiSelectHint: '下の写真から、AIにコピーを作ってほしい画像をタップして選んでください。選んだ画像だけ使われます。', aiNoSelection: '先に下の写真を1枚以上タップして選んでください。', selectAll: 'すべて選択', selectNone: '選択解除',
+    ollamaHttpsBlocked: 'このページはHTTPSで配信されているため、ブラウザがローカルのOllamaへの接続をブロックしています（Ollama側の不具合ではなく、ブラウザのセキュリティ制限です）。ここでは「Ollama Cloud」をお使いいただくか、ローカルOllamaを使うには「npm run dev」でこのアプリをhttp://localhostで起動してください。',
   },
 } as const
 

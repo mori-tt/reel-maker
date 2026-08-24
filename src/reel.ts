@@ -66,12 +66,19 @@ export function getFrameState(time: number, itemCount: number, secondsPerItem: n
 }
 export function moveItem<T>(items: readonly T[], from: number, to: number): T[] { const next = [...items]; if (from < 0 || from >= next.length || to < 0 || to >= next.length || from === to) return next; const [item] = next.splice(from, 1); next.splice(to, 0, item); return next }
 // With many photos, a short per-image duration makes the cuts feel like a flicker rather than a
-// story. Raise the floor as the count grows so adding photos can't make the video feel rushed;
-// the total simply gets longer instead. Callers should also clamp the current value up to this.
+// story. Raise the floor a little as the count grows so adding photos can't make the video feel
+// rushed. Paired with maxSecondsPerImage below, which pulls the ceiling down as the count grows,
+// so a large batch can't run away into an overly long total either. Callers should clamp the
+// current value into [min, max] on every change.
 export function minSecondsPerImage(slideCount: number): number {
-  if (slideCount <= 8) return 3
-  if (slideCount <= 16) return 4
-  return 5
+  if (slideCount <= 8) return 2
+  if (slideCount <= 16) return 3
+  return 4
+}
+export function maxSecondsPerImage(slideCount: number): number {
+  if (slideCount <= 8) return 8
+  if (slideCount <= 16) return 6
+  return 4
 }
 const MIME_TYPES = ['video/webm;codecs=av01', 'video/webm;codecs=vp9', 'video/webm;codecs=vp8', 'video/webm']
 export function getMimeType(isSupported: (type: string) => boolean) { return MIME_TYPES.find(isSupported) ?? 'video/webm' }

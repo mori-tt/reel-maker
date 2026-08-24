@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { VIDEO_FORMATS, VIDEO_PATTERNS, VIDEO_QUALITIES, getFrameState, getMimeType, getPatternFrame, getVideoFormat, getVideoPattern, getVideoQuality, isVideoFormatId, isVideoPatternId, isVideoQualityId, minSecondsPerImage, moveItem, nextFrameDelayMs } from './reel'
+import { VIDEO_FORMATS, VIDEO_PATTERNS, VIDEO_QUALITIES, getFrameState, getMimeType, getPatternFrame, getVideoFormat, getVideoPattern, getVideoQuality, isVideoFormatId, isVideoPatternId, isVideoQualityId, maxSecondsPerImage, minSecondsPerImage, moveItem, nextFrameDelayMs } from './reel'
 
 describe('reel timeline', () => {
   it('maps playback time to a slide and local progress', () => {
@@ -85,11 +85,24 @@ describe('reel timeline', () => {
   })
 
   it('raises the minimum seconds per image as the photo count grows', () => {
-    expect(minSecondsPerImage(1)).toBe(3)
-    expect(minSecondsPerImage(8)).toBe(3)
-    expect(minSecondsPerImage(9)).toBe(4)
-    expect(minSecondsPerImage(16)).toBe(4)
-    expect(minSecondsPerImage(17)).toBe(5)
-    expect(minSecondsPerImage(50)).toBe(5)
+    expect(minSecondsPerImage(1)).toBe(2)
+    expect(minSecondsPerImage(8)).toBe(2)
+    expect(minSecondsPerImage(9)).toBe(3)
+    expect(minSecondsPerImage(16)).toBe(3)
+    expect(minSecondsPerImage(17)).toBe(4)
+    expect(minSecondsPerImage(50)).toBe(4)
+  })
+
+  it('lowers the maximum seconds per image as the photo count grows, so totals cannot run away', () => {
+    expect(maxSecondsPerImage(1)).toBe(8)
+    expect(maxSecondsPerImage(8)).toBe(8)
+    expect(maxSecondsPerImage(9)).toBe(6)
+    expect(maxSecondsPerImage(16)).toBe(6)
+    expect(maxSecondsPerImage(17)).toBe(4)
+    expect(maxSecondsPerImage(50)).toBe(4)
+  })
+
+  it('keeps min at or below max at every photo count', () => {
+    for (const count of [1, 8, 9, 16, 17, 50, 200]) expect(minSecondsPerImage(count)).toBeLessThanOrEqual(maxSecondsPerImage(count))
   })
 })
