@@ -75,7 +75,7 @@ If your total video length runs longer than what tends to work well for the sele
 
 ### 4. Motion style
 
-Under **"Motion style"**, pick one of twelve looks. Each has its own pacing, color grade, signature visual touch, and text treatment (alignment, capitalization, shadow style) — not just a faster or slower zoom:
+Under **"Motion style"**, pick one of eighteen looks. Each has its own pacing, color grade, signature visual touch, and text treatment (alignment, capitalization, shadow style) — not just a faster or slower zoom:
 
 - **Cinematic** — slow zoom, letterbox bars, muted color — for reflective, story-like content
 - **Dynamic** — fast zoom/slide, a quick white flash on every cut, vivid color — for energetic, attention-grabbing content
@@ -89,15 +89,23 @@ Under **"Motion style"**, pick one of twelve looks. Each has its own pacing, col
 - **Glow** — soft bloom, dreamy warmth, floaty zoom, smaller/lighter title — for soft, poetic content
 - **Comic** — halftone dot texture, bold pop color, punchy cuts, uppercase title — for playful, high-energy content
 - **Editorial** — a bold color-block accent bar, sharp contrast, left-aligned title — for confident, magazine-style content
+- **Pastel** — a soft duotone color wash, gentle floating drift, light/airy title — for sweet, dreamy content
+- **Retrowave** — a glowing 80s-style horizon grid, magenta-shifted color, a rising zoom — for retro-futuristic, confident content
+- **Street** — spray-paint slash marks, a bold outlined title, punchy jump-cuts — for brash, street-style content
+- **Luxury** — a gold shimmer border, a refined letter-spaced title, minimal and restrained motion — for elegant, aspirational content
+- **Travel** — a postcard-style stamp in the corner, a dashed border, a gentle exploring pan — for wanderlust, adventure content
+- **Kawaii** — candy-bright color, twinkling sparkles, a bouncy zoom — for cute, playful content
 
 The preview updates live so you can compare before exporting. Longer per-image durations also move proportionally more than shorter ones for the same style, so an 8-second hold doesn't feel static next to a 2-second one.
+
+Want one photo to use a *different* style than the rest? Use **"Style for this image"** on that photo's card in step 1 above instead of changing this project-wide setting.
 
 ### 5. Background music (optional)
 
 Under **"Background music"**, either:
 
 - Click **"Add a music file"** to upload your own track (any audio format your browser can decode), or
-- Pick one of the 4 **built-in tracks** (Calm, Uplifting, Cinematic, Playful) - these are generated on the spot right in your browser (an original chord progression, not a sample of anything), so there's no file to find and no licensing question. If you want a real produced/licensed track instead, see [Where the background music comes from](#bgm-source-en) for a few places to find one and download it, then upload it the same way.
+- Pick one of the 8 **built-in tracks** (Calm, Uplifting, Cinematic, Playful, Dramatic, Lofi, Energetic, Acoustic) - these are generated on the spot right in your browser (an original chord progression, not a sample of anything), so there's no file to find and no licensing question. If you want a real produced/licensed track instead, see [Where the background music comes from](#bgm-source-en) for a few places to find one and download it, then upload it the same way.
 
 Either way, the track is automatically trimmed to match the video's length if it's longer, or looped seamlessly if it's shorter, with a short fade-in at the very start and a fade-out at the very end so it never starts or stops abruptly. Use the volume slider to adjust how loud it plays, or **"Remove"** to drop it and pick again.
 
@@ -226,7 +234,7 @@ Frameflowは、手持ちの写真から投稿先に合わせたショート動�
 
 ### 4. 動画パターン
 
-**「動画パターン」**から12種類の演出を選べます。それぞれ速さだけでなく、色調・視覚効果・文字の見せ方（配置・大文字化・影）まで変えているので、はっきり見た目が異なります。
+**「動画パターン」**から18種類の演出を選べます。それぞれ速さだけでなく、色調・視覚効果・文字の見せ方（配置・大文字化・影）まで変えているので、はっきり見た目が異なります。
 
 - **シネマティック** — ゆっくりズーム、上下のレターボックス、落ち着いた色調。振り返るような、物語的な内容向き
 - **ダイナミック** — 速いズーム・スライド、カットごとの白フラッシュ、鮮やかな色調。勢いのある、目を引く内容向き
@@ -240,15 +248,23 @@ Frameflowは、手持ちの写真から投稿先に合わせたショート動�
 - **グロウ** — 柔らかい光の滲み、夢見心地な暖かさ、漂うようなズーム、小さめで軽いタイトル。柔らかく詩的な内容向き
 - **コミック** — ハーフトーンドットの質感、ポップな色調、小気味よいカット、大文字タイトル。遊び心のある、テンションの高い内容向き
 - **エディトリアル** — 大胆なカラーブロックのアクセントバー、シャープなコントラスト、左寄せタイトル。自信のある、雑誌のような内容向き
+- **パステル** — 柔らかなデュオトーンの色調、漂うような動き、軽やかなタイトル。甘く夢見心地な内容向き
+- **レトロウェイブ** — 光る80年代風の地平線グリッド、マゼンタシフトした色調、上昇するズーム。レトロフューチャーで自信のある内容向き
+- **ストリート** — スプレーペイント風のライン、太い縁取りタイトル、小気味よいジャンプカット。大胆でストリート感のある内容向き
+- **ラグジュアリー** — ゴールドの光る枠、上品な文字間隔のタイトル、控えめで上品な動き。洗練された、憧れを誘う内容向き
+- **トラベル** — ポストカード風の隅のスタンプ、点線の枠、探検するようなパン。旅への憧れをくすぐる内容向き
+- **カワイイ** — キャンディカラー、きらめくスパークル、弾むようなズーム。かわいく元気な内容向き
 
 プレビューはリアルタイムで更新されるので、書き出す前に見比べられます。1枚あたりの表示時間が長いほど、同じ演出でも動きの量が比例して大きくなるため、8秒の表示が2秒の表示に比べて動きが単調に感じにくくなっています。
+
+1枚の写真だけ、他とは違うスタイルにしたい場合は、この用途全体の設定を変える代わりに、手順1にあるその写真のカードの**「この画像のスタイル」**を使ってください。
 
 ### 5. BGM（背景音楽・任意）
 
 **「BGM（背景音楽）」**では、次のいずれかを選べます：
 
 - **「音楽ファイルを追加」**から、お好きな音楽ファイル（ブラウザが再生できる形式）をアップロードする
-- 内蔵の**4種類のムード**（カーム／アップリフティング／シネマティック／プレイフル）から選ぶ——これらはブラウザ内でその場で生成されるもの（何かのサンプルではなく、オリジナルのコード進行）なので、探すファイルもライセンスの心配もありません。本格的に作られた・許諾された音楽を使いたい場合は、[BGMの音源について](#bgm-source-ja)にいくつかの入手先を挙げていますので、そちらからダウンロードし、同じ方法でアップロードしてください。
+- 内蔵の**8種類のムード**（カーム／アップリフティング／シネマティック／プレイフル／ドラマチック／ローファイ／エナジェティック／アコースティック）から選ぶ——これらはブラウザ内でその場で生成されるもの（何かのサンプルではなく、オリジナルのコード進行）なので、探すファイルもライセンスの心配もありません。本格的に作られた・許諾された音楽を使いたい場合は、[BGMの音源について](#bgm-source-ja)にいくつかの入手先を挙げていますので、そちらからダウンロードし、同じ方法でアップロードしてください。
 
 どちらの場合も、動画より長い場合は自動でトリミングし、短い場合はシームレスにループして、開始時に短いフェードイン、終了時に短いフェードアウトが入るため、急に始まったり止まったりしません。音量スライダーで大きさを調整でき、**「削除」**で解除して選び直せます。
 

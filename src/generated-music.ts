@@ -7,12 +7,16 @@
 // fallback for whenever that's not what someone wants or has time for, not a replacement for it.
 import type { Language } from './i18n'
 
-export type MusicMoodId = 'calm' | 'uplifting' | 'cinematic' | 'playful'
+export type MusicMoodId = 'calm' | 'uplifting' | 'cinematic' | 'playful' | 'dramatic' | 'lofi' | 'energetic' | 'acoustic'
 export const MUSIC_MOODS: readonly { id: MusicMoodId; name: { en: string; ja: string }; description: { en: string; ja: string } }[] = [
   { id: 'calm', name: { en: 'Calm', ja: 'カーム' }, description: { en: 'Slow, warm pad chords', ja: 'ゆったり暖かいパッドコード' } },
   { id: 'uplifting', name: { en: 'Uplifting', ja: 'アップリフティング' }, description: { en: 'Bright chords with a gentle arpeggio', ja: '明るいコードと柔らかいアルペジオ' } },
   { id: 'cinematic', name: { en: 'Cinematic', ja: 'シネマティック' }, description: { en: 'Slow minor-key atmosphere', ja: 'ゆったりとしたマイナー調の情景' } },
   { id: 'playful', name: { en: 'Playful', ja: 'プレイフル' }, description: { en: 'Light plucked notes, a bit of bounce', ja: '軽やかなプラック音、弾むリズム' } },
+  { id: 'dramatic', name: { en: 'Dramatic', ja: 'ドラマチック' }, description: { en: 'Driving minor-key pulse, trailer-like', ja: '脈打つマイナー調、予告編のような緊張感' } },
+  { id: 'lofi', name: { en: 'Lofi', ja: 'ローファイ' }, description: { en: 'Muffled jazzy 7th chords, relaxed', ja: 'こもったジャジーな7thコード、まったり' } },
+  { id: 'energetic', name: { en: 'Energetic', ja: 'エナジェティック' }, description: { en: 'Fast bright chords + busy arpeggio', ja: '速く明るいコード＋忙しいアルペジオ' } },
+  { id: 'acoustic', name: { en: 'Acoustic', ja: 'アコースティック' }, description: { en: 'Simple, warm, folk-like strum', ja: 'シンプルで暖かい、フォーク風のストラム' } },
 ] as const
 export function isMusicMoodId(value: string | null): value is MusicMoodId { return MUSIC_MOODS.some(mood => mood.id === value) }
 export function getMusicMood(id: MusicMoodId) { return MUSIC_MOODS.find(mood => mood.id === id) ?? MUSIC_MOODS[0] }
@@ -22,21 +26,35 @@ export function getMusicMood(id: MusicMoodId) { return MUSIC_MOODS.find(mood => 
 function noteFrequency(semitonesFromA4: number): number { return 440 * 2 ** (semitonesFromA4 / 12) }
 const MAJOR_TRIAD = [0, 4, 7]
 const MINOR_TRIAD = [0, 3, 7]
+const MAJOR_SEVENTH = [0, 4, 7, 11]
+const MINOR_SEVENTH = [0, 3, 7, 10]
+const DOMINANT_SEVENTH = [0, 4, 7, 10]
 type ChordStep = { rootOffset: number; triad: readonly number[] }
-type MoodConfig = { keyRoot: number; progression: readonly ChordStep[]; chordSeconds: number; octaveShift: number; cutoffHz: number; arpeggio: boolean; volume: number; waveform: OscillatorType }
+// texture layers an optional rhythmic element on top of the sustained chord: 'arpeggio' climbs
+// through the chord's own notes (bright, melodic), 'pulse' repeats a single low root note like a
+// heartbeat (driving, tense) - both reuse schedulePluck, just at different pitches/rates.
+// attackRatio overrides how much of each chord's duration is spent swelling in (default below
+// suits a slow pad; a snappier mood like Acoustic wants a much shorter attack to read as plucked/
+// strummed rather than a synth pad fading up).
+type MoodConfig = { keyRoot: number; progression: readonly ChordStep[]; chordSeconds: number; octaveShift: number; cutoffHz: number; texture: 'none' | 'arpeggio' | 'pulse'; volume: number; waveform: OscillatorType; attackRatio?: number }
 
-// Every mood is the same underlying engine (a chord progression of sustained triads, softly
-// low-pass filtered, optionally topped with a plucked arpeggio) with different musical choices -
-// key/mode, tempo, register, and texture - rather than four separate implementations.
+// Every mood is the same underlying engine (a chord progression of sustained triads/sevenths,
+// softly low-pass filtered, optionally topped with a plucked arpeggio or a pulsing bass) with
+// different musical choices - key/mode, chord quality, tempo, register, and texture - rather than
+// eight separate implementations.
 // `volume` values leave headroom below clipping (peak stays under roughly -10dBFS even on the
 // arpeggiated moods, where a plucked note can briefly overlap a chord's own peak) while still
 // being clearly audible as a soundtrack, since for this app music is the *only* audio - there's
 // no dialogue it needs to duck under.
 const MOODS: Record<MusicMoodId, MoodConfig> = {
-  calm: { keyRoot: -9, progression: [{ rootOffset: 0, triad: MAJOR_TRIAD }, { rootOffset: 7, triad: MAJOR_TRIAD }, { rootOffset: 9, triad: MINOR_TRIAD }, { rootOffset: 5, triad: MAJOR_TRIAD }], chordSeconds: 4.5, octaveShift: -12, cutoffHz: 900, arpeggio: false, volume: .4, waveform: 'triangle' },
-  uplifting: { keyRoot: -9, progression: [{ rootOffset: 0, triad: MAJOR_TRIAD }, { rootOffset: 5, triad: MAJOR_TRIAD }, { rootOffset: 9, triad: MINOR_TRIAD }, { rootOffset: 7, triad: MAJOR_TRIAD }], chordSeconds: 3, octaveShift: 0, cutoffHz: 2200, arpeggio: true, volume: .3, waveform: 'triangle' },
-  cinematic: { keyRoot: -12, progression: [{ rootOffset: 0, triad: MINOR_TRIAD }, { rootOffset: 8, triad: MAJOR_TRIAD }, { rootOffset: 3, triad: MAJOR_TRIAD }, { rootOffset: 10, triad: MAJOR_TRIAD }], chordSeconds: 5.5, octaveShift: -12, cutoffHz: 650, arpeggio: false, volume: .42, waveform: 'sine' },
-  playful: { keyRoot: -9, progression: [{ rootOffset: 0, triad: MAJOR_TRIAD }, { rootOffset: 9, triad: MINOR_TRIAD }, { rootOffset: 5, triad: MAJOR_TRIAD }, { rootOffset: 7, triad: MAJOR_TRIAD }], chordSeconds: 2, octaveShift: 0, cutoffHz: 3200, arpeggio: true, volume: .28, waveform: 'square' },
+  calm: { keyRoot: -9, progression: [{ rootOffset: 0, triad: MAJOR_TRIAD }, { rootOffset: 7, triad: MAJOR_TRIAD }, { rootOffset: 9, triad: MINOR_TRIAD }, { rootOffset: 5, triad: MAJOR_TRIAD }], chordSeconds: 4.5, octaveShift: -12, cutoffHz: 900, texture: 'none', volume: .4, waveform: 'triangle' },
+  uplifting: { keyRoot: -9, progression: [{ rootOffset: 0, triad: MAJOR_TRIAD }, { rootOffset: 5, triad: MAJOR_TRIAD }, { rootOffset: 9, triad: MINOR_TRIAD }, { rootOffset: 7, triad: MAJOR_TRIAD }], chordSeconds: 3, octaveShift: 0, cutoffHz: 2200, texture: 'arpeggio', volume: .3, waveform: 'triangle' },
+  cinematic: { keyRoot: -12, progression: [{ rootOffset: 0, triad: MINOR_TRIAD }, { rootOffset: 8, triad: MAJOR_TRIAD }, { rootOffset: 3, triad: MAJOR_TRIAD }, { rootOffset: 10, triad: MAJOR_TRIAD }], chordSeconds: 5.5, octaveShift: -12, cutoffHz: 650, texture: 'none', volume: .42, waveform: 'sine' },
+  playful: { keyRoot: -9, progression: [{ rootOffset: 0, triad: MAJOR_TRIAD }, { rootOffset: 9, triad: MINOR_TRIAD }, { rootOffset: 5, triad: MAJOR_TRIAD }, { rootOffset: 7, triad: MAJOR_TRIAD }], chordSeconds: 2, octaveShift: 0, cutoffHz: 3200, texture: 'arpeggio', volume: .28, waveform: 'square' },
+  dramatic: { keyRoot: -12, progression: [{ rootOffset: 0, triad: MINOR_TRIAD }, { rootOffset: 8, triad: MAJOR_TRIAD }, { rootOffset: 10, triad: MAJOR_TRIAD }, { rootOffset: 3, triad: MINOR_TRIAD }], chordSeconds: 2.8, octaveShift: -12, cutoffHz: 1100, texture: 'pulse', volume: .36, waveform: 'sawtooth' },
+  lofi: { keyRoot: -9, progression: [{ rootOffset: 0, triad: MAJOR_SEVENTH }, { rootOffset: 9, triad: MINOR_SEVENTH }, { rootOffset: 5, triad: MAJOR_SEVENTH }, { rootOffset: 7, triad: DOMINANT_SEVENTH }], chordSeconds: 4, octaveShift: -12, cutoffHz: 550, texture: 'none', volume: .4, waveform: 'triangle' },
+  energetic: { keyRoot: -9, progression: [{ rootOffset: 0, triad: MAJOR_TRIAD }, { rootOffset: 5, triad: MAJOR_TRIAD }, { rootOffset: 7, triad: MAJOR_TRIAD }, { rootOffset: 9, triad: MINOR_TRIAD }], chordSeconds: 1.6, octaveShift: 0, cutoffHz: 2800, texture: 'arpeggio', volume: .28, waveform: 'triangle' },
+  acoustic: { keyRoot: -9, progression: [{ rootOffset: 0, triad: MAJOR_TRIAD }, { rootOffset: 5, triad: MAJOR_TRIAD }, { rootOffset: 7, triad: MAJOR_TRIAD }, { rootOffset: 0, triad: MAJOR_TRIAD }], chordSeconds: 3.2, octaveShift: -12, cutoffHz: 1300, texture: 'none', volume: .38, waveform: 'triangle', attackRatio: .04 },
 }
 
 // A single short, decaying note - used for the arpeggio layer so it reads as "plucked" rather
@@ -50,10 +68,11 @@ function schedulePluck(context: BaseAudioContext, destination: AudioNode, freque
   osc.connect(gain); gain.connect(destination)
   osc.start(startTime); osc.stop(startTime + duration)
 }
-// One sustained chord - a triad's worth of oscillators sharing a soft attack/release envelope so
-// chord changes fade into each other instead of clicking.
-function scheduleChord(context: BaseAudioContext, destination: AudioNode, frequencies: number[], startTime: number, duration: number, waveform: OscillatorType) {
-  const attack = Math.min(.8, duration * .3); const release = Math.min(.8, duration * .3)
+// One sustained chord - a triad's (or seventh chord's) worth of oscillators sharing a soft
+// attack/release envelope so chord changes fade into each other instead of clicking. A shorter
+// attackRatio reads more like a plucked/strummed instrument than a synth pad swelling in.
+function scheduleChord(context: BaseAudioContext, destination: AudioNode, frequencies: number[], startTime: number, duration: number, waveform: OscillatorType, attackRatio = .3) {
+  const attack = Math.min(.8, duration * attackRatio); const release = Math.min(.8, duration * .3)
   const perNoteGain = .8 / frequencies.length
   for (const frequency of frequencies) {
     const osc = context.createOscillator(); osc.type = waveform; osc.frequency.value = frequency
@@ -77,10 +96,15 @@ export async function synthesizeMusic(mood: MusicMoodId, durationSeconds: number
     const chord = config.progression[stepIndex % config.progression.length]
     const chordDuration = Math.min(config.chordSeconds, durationSeconds - time)
     const chordRoot = config.keyRoot + chord.rootOffset + config.octaveShift
-    scheduleChord(context, filter, chord.triad.map(interval => noteFrequency(chordRoot + interval)), time, chordDuration, config.waveform)
-    if (config.arpeggio) {
+    scheduleChord(context, filter, chord.triad.map(interval => noteFrequency(chordRoot + interval)), time, chordDuration, config.waveform, config.attackRatio)
+    if (config.texture === 'arpeggio') {
       const notes = [0, ...chord.triad, 12]; const noteDuration = chordDuration / notes.length
       notes.forEach((interval, i) => schedulePluck(context, filter, noteFrequency(chordRoot + interval + 12), time + i * noteDuration, noteDuration * 1.6, .5))
+    } else if (config.texture === 'pulse') {
+      // A repeated low root note (one octave below the chord) at a steady rate, like a driving
+      // heartbeat under the sustained harmony - distinct from the arpeggio's ascending melody.
+      const pulseCount = Math.max(2, Math.round(chordDuration / .55)); const pulseDuration = chordDuration / pulseCount
+      for (let i = 0; i < pulseCount; i++) schedulePluck(context, filter, noteFrequency(chordRoot - 12), time + i * pulseDuration, pulseDuration * .92, .6)
     }
     time += chordDuration; stepIndex++
   }

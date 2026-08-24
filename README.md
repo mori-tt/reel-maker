@@ -24,12 +24,12 @@ This README covers setup, deployment, and configuration. For a walkthrough of us
 - Per-image focal point: tap where the subject is so cropping to the target aspect ratio keeps it in frame, or let AI locate the main subject for you (see [Chrome/Ollama AI beyond copywriting](#chromeollama-ai-beyond-copywriting))
 - Per-image style override: give any single photo its own motion/color pattern instead of the project-wide default - useful when one photo in the batch needs to stand out, and it carries through to that photo's still-image export too
 - A dedicated "Export image" button per photo, for grabbing just one slide (at its own style) without exporting the whole batch
-- Background music: upload your own track, or pick one of 4 built-in generated moods (Calm, Uplifting, Cinematic, Playful) - either way it's trimmed/looped to the video's length with a fade-in at the start and a fade-out at the end (MP4 export only). The built-in tracks are synthesized live from a chord progression right in your browser (see [Where the background music comes from](#where-the-background-music-comes-from)) - not sampled from anywhere, so there's no licensing to think about
+- Background music: upload your own track, or pick one of 8 built-in generated moods (Calm, Uplifting, Cinematic, Playful, Dramatic, Lofi, Energetic, Acoustic) - either way it's trimmed/looped to the video's length with a fade-in at the start and a fade-out at the end (MP4 export only). The built-in tracks are synthesized live from a chord progression right in your browser (see [Where the background music comes from](#where-the-background-music-comes-from)) - not sampled from anywhere, so there's no licensing to think about
 - Export every slide as a set of still images (e.g. an Instagram carousel post) in addition to video, using the same color grade/decoration/text as the chosen motion style
 - AI copy suggestions via Chrome on-device AI, Local Ollama, or Ollama Cloud, plus a non-copywriting use of the same vision models for focal-point detection (see [Chrome/Ollama AI beyond copywriting](#chromeollama-ai-beyond-copywriting))
 - English / Japanese UI (English by default)
 - Export quality presets: Standard (30fps, 16 Mbps), High quality (60fps, 42 Mbps), and Ultra HD (60fps, 80 Mbps, 2x resolution - true 4K on formats based on a 1080p canvas) — Standard/High render at the format's base resolution (e.g. 1080x1920 for a 9:16 format); Ultra HD doubles both dimensions
-- 12 motion styles, each with its own color grade, signature decoration, and text treatment (alignment/case/shadow) — not just a faster/slower pan-zoom:
+- 18 motion styles, each with its own color grade, signature decoration, and text treatment (alignment/case/shadow) — not just a faster/slower pan-zoom. Any single photo can also override the project's style (see "Per-image style override" above), so a video isn't locked to only one of these at a time:
   - **Cinematic** — slow zoom + letterbox bars + muted grade
   - **Dynamic** — fast zoom/slide + a white flash on every cut + punchy grade
   - **Minimal** — quiet cuts + soft vignette + smaller, lighter title
@@ -42,6 +42,12 @@ This README covers setup, deployment, and configuration. For a walkthrough of us
   - **Glow** — soft bloom + dreamy warmth + floaty zoom + smaller, lighter title
   - **Comic** — halftone dots + bold pop color + punchy cuts + uppercase title
   - **Editorial** — bold color-block accent bar + sharp contrast + left-aligned title
+  - **Pastel** — soft duotone color wash + floating drift + light title
+  - **Retrowave** — glowing 80s horizon grid + magenta shift + rising zoom
+  - **Street** — spray-paint slash marks + bold outline title + punchy jump-cuts
+  - **Luxury** — gold shimmer border + refined letter-spaced title + minimal, restrained motion
+  - **Travel** — postcard stamp corner + dashed border + exploring pan
+  - **Kawaii** — candy color pop + twinkling sparkles + bouncy zoom
 - Motion amount (zoom/pan/rotation) scales with the actual per-image duration, so an 8s hold moves proportionally more than a 2s one instead of both using the same fixed range
 - Duration per image automatically adjusts with photo count — the minimum rises and the maximum comes down as you add more, so a large batch neither flickers by nor runs unexpectedly long
 - Constant-bitrate encoding, so export quality never dips below the selected preset regardless of how visually complex the photos are
@@ -75,7 +81,7 @@ On browsers without WebCodecs support (older Firefox, for example), export autom
 
 ### Where the background music comes from
 
-Frameflow doesn't ship any bundled/downloaded audio files, and doesn't scrape or link into third-party "free music" sites automatically - verifying the actual copyright status and license terms (attribution requirements, commercial-use restrictions, etc.) of content pulled from an arbitrary external site isn't something this app can do reliably, and getting it wrong would put that risk on whoever posts the video. Instead, the 4 built-in moods (`src/generated-music.ts`) are synthesized entirely client-side from oscillators (a chord progression per mood, run through a `OfflineAudioContext`, encoded to WAV) - original by construction, so there's no license to check.
+Frameflow doesn't ship any bundled/downloaded audio files, and doesn't scrape or link into third-party "free music" sites automatically - verifying the actual copyright status and license terms (attribution requirements, commercial-use restrictions, etc.) of content pulled from an arbitrary external site isn't something this app can do reliably, and getting it wrong would put that risk on whoever posts the video. Instead, the 8 built-in moods (`src/generated-music.ts`) are synthesized entirely client-side from oscillators (a chord progression per mood, run through an `OfflineAudioContext`, encoded to WAV) - original by construction, so there's no license to check. All 8 moods share one engine and differ only in their musical parameters (key/chord quality, tempo, register, filter brightness, waveform, and an optional arpeggio/bass-pulse texture) - e.g. Lofi uses jazzy 7th chords with a muffled low-pass filter, Dramatic adds a pulsing low root note under a faster minor-key progression.
 
 For real produced/licensed music instead, download a track yourself from a source whose terms you're comfortable with and use the existing **"Add a music file"** upload button - a few well-known starting points (not affiliated with this project; check each one's current terms before use):
 
@@ -234,12 +240,12 @@ FrameflowはInstagram・TikTok・YouTubeへの直接投稿・アップロード�
 - 画像ごとのフォーカルポイント：被写体の位置をタップすると、用途に合わせてクロップしても被写体が枠内に残る。またAIに主な被写体の位置を検出してもらうことも可能（詳しくは[Chrome/OllamaのAI活用：コピー生成以外の使い方](#chromeollamaのai活用コピー生成以外の使い方)）
 - 画像ごとのスタイル上書き：プロジェクト全体の既定パターンとは別に、1枚だけ違う動き・色調を指定可能。その画像だけ目立たせたいときに便利で、その画像の静止画書き出しにも反映されます
 - 画像ごとの「この画像を書き出す」ボタン：バッチ全体を書き出さずに、その画像（＋そのスタイル）だけを1枚取得できます
-- BGM（背景音楽）：お好きな音楽ファイルをアップロードするか、内蔵の生成ムード（カーム／アップリフティング／シネマティック／プレイフルの4種類）から選べます。いずれも動画の長さに合わせて自動でトリミングまたはループし、開始時にフェードイン、終了時にフェードアウトします（MP4書き出し時のみ）。内蔵ムードはブラウザ内でその場で音を合成したものです（詳しくは[BGMの音源について](#bgmの音源について)）
+- BGM（背景音楽）：お好きな音楽ファイルをアップロードするか、内蔵の生成ムード（カーム／アップリフティング／シネマティック／プレイフル／ドラマチック／ローファイ／エナジェティック／アコースティックの8種類）から選べます。いずれも動画の長さに合わせて自動でトリミングまたはループし、開始時にフェードイン、終了時にフェードアウトします（MP4書き出し時のみ）。内蔵ムードはブラウザ内でその場で音を合成したものです（詳しくは[BGMの音源について](#bgmの音源について)）
 - 動画に加えて、各画像を静止画セット（Instagramカルーセル投稿など）としても書き出し可能。選んだ動画パターンと同じ色調・装飾・文字を反映
 - Chrome端末内AI、ローカルOllama、Ollama Cloudによる画像別タイトル・CTA提案。同じ画像認識モデルを使ったコピー生成以外の用途（フォーカルポイント検出）もあります
 - 英語／日本語UI切替（初回は英語）
 - 書き出しプリセット：標準（30fps・16Mbps）／高画質（60fps・42Mbps）／最高画質（60fps・80Mbps・2倍解像度、1080pベースの用途では実質4K）。標準・高画質は用途の基本解像度（例：9:16用途なら1080×1920）で書き出し、最高画質は縦横ともに2倍になります
-- 12種類の動画演出。単にパン・ズームの速さを変えるだけでなく、色調・装飾・文字の見せ方（配置・大文字化・影）まで演出ごとに変えて見た目を差別化：
+- 18種類の動画演出。単にパン・ズームの速さを変えるだけでなく、色調・装飾・文字の見せ方（配置・大文字化・影）まで演出ごとに変えて見た目を差別化。1枚の画像だけプロジェクトの演出を上書きすることも可能なので（上記「画像ごとのスタイル上書き」）、1つの動画が必ずしも1種類の演出に固定されるわけではありません：
   - **シネマティック** — 遅いズーム＋レターボックス＋落ち着いた色調
   - **ダイナミック** — 速いズーム／スライド＋カットごとの白フラッシュ＋鮮やかな色調
   - **ミニマル** — 静かな切り替え＋柔らかいビネット＋小さめで軽いタイトル
@@ -252,6 +258,12 @@ FrameflowはInstagram・TikTok・YouTubeへの直接投稿・アップロード�
   - **グロウ** — 柔らかい光の滲み＋夢見心地な暖かさ＋漂うようなズーム＋小さめで軽いタイトル
   - **コミック** — ハーフトーンドット＋ポップな色調＋小気味よいカット＋大文字タイトル
   - **エディトリアル** — 大胆なカラーブロックのアクセントバー＋シャープなコントラスト＋左寄せタイトル
+  - **パステル** — 柔らかなデュオトーンの色調＋漂うような動き＋軽やかなタイトル
+  - **レトロウェイブ** — 光る80年代風の地平線グリッド＋マゼンタシフト＋上昇するズーム
+  - **ストリート** — スプレーペイント風のライン＋太い縁取りタイトル＋小気味よいジャンプカット
+  - **ラグジュアリー** — ゴールドの光る枠＋上品な文字間隔のタイトル＋控えめで上品な動き
+  - **トラベル** — ポストカード風の隅のスタンプ＋点線の枠＋探検するようなパン
+  - **カワイイ** — キャンディカラー＋きらめくスパークル＋弾むようなズーム
 - 動きの量（ズーム・パン・回転）が1枚あたりの表示時間に応じて調整され、8秒の表示は2秒の表示より比例して大きく動く（固定量ではない）
 - 写真の枚数に応じて1枚あたりの表示時間の下限・上限が自動的に調整され、枚数が多くても切り替えが速すぎたり、逆に合計が長くなりすぎたりしない
 - 固定ビットレートでエンコードするため、写真の内容が複雑でも選んだプリセットの画質を下回らない
@@ -285,7 +297,7 @@ WebCodecsが使えないブラウザ（古いFirefoxなど）では、従来ど�
 
 ### BGMの音源について
 
-Frameflowは音声ファイルを同梱・ダウンロードしたり、いわゆる「無料音楽」サイトへ自動的にリンク・スクレイピングしたりはしません。外部サイトから取得したコンテンツの実際の著作権状況やライセンス条件（クレジット表記の要否、商用利用の可否など）を本アプリ側で確実に検証する方法がなく、そこを誤ると動画を投稿する方にそのリスクが及んでしまうためです。代わりに、内蔵の4種類のムード（`src/generated-music.ts`）はブラウザ内で発振器から完全に合成しています（ムードごとのコード進行を`OfflineAudioContext`で処理し、WAVにエンコード）。構造上オリジナルなので、確認すべきライセンスがありません。
+Frameflowは音声ファイルを同梱・ダウンロードしたり、いわゆる「無料音楽」サイトへ自動的にリンク・スクレイピングしたりはしません。外部サイトから取得したコンテンツの実際の著作権状況やライセンス条件（クレジット表記の要否、商用利用の可否など）を本アプリ側で確実に検証する方法がなく、そこを誤ると動画を投稿する方にそのリスクが及んでしまうためです。代わりに、内蔵の8種類のムード（`src/generated-music.ts`）はブラウザ内で発振器から完全に合成しています（ムードごとのコード進行を`OfflineAudioContext`で処理し、WAVにエンコード）。構造上オリジナルなので、確認すべきライセンスがありません。8種類のムードはすべて同じ合成エンジンを使い、音楽的なパラメータ（キー・コードの種類・テンポ・音域・フィルターの明るさ・波形・アルペジオ／ベースパルスの有無）だけを変えて作られています——例えばローファイはジャジーな7thコードとこもったローパスフィルター、ドラマチックは速めのマイナー調進行に脈打つ低音を重ねています。
 
 本格的に作られた・許諾された音楽を使いたい場合は、ご自身が納得できる利用条件のサイトから音源をダウンロードし、既存の**「音楽ファイルを追加」**ボタンからアップロードしてください。よく知られた候補をいくつか挙げます（本プロジェクトとは提携関係はありません。利用前に各サイトの最新の利用条件をご確認ください）：
 

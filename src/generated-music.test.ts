@@ -28,13 +28,14 @@ function readWavHeader(blob: Blob) {
 
 describe('background music mood catalog', () => {
   it('exposes a stable set of mood ids with localized names', () => {
-    expect(MUSIC_MOODS.map(mood => mood.id)).toEqual(['calm', 'uplifting', 'cinematic', 'playful'])
+    expect(MUSIC_MOODS.map(mood => mood.id)).toEqual(['calm', 'uplifting', 'cinematic', 'playful', 'dramatic', 'lofi', 'energetic', 'acoustic'])
     for (const mood of MUSIC_MOODS) { expect(mood.name.en).toBeTruthy(); expect(mood.name.ja).toBeTruthy() }
   })
 
   it('validates mood ids', () => {
     expect(isMusicMoodId('calm')).toBe(true)
-    expect(isMusicMoodId('lofi')).toBe(false)
+    expect(isMusicMoodId('lofi')).toBe(true)
+    expect(isMusicMoodId('synthwave')).toBe(false)
     expect(isMusicMoodId(null)).toBe(false)
   })
 
