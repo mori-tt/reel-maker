@@ -30,11 +30,12 @@ describe('reel timeline', () => {
     expect(nextFrameDelayMs(0, 1, 30, 100)).toBe(0)
   })
 
-  it('provides all eight selectable video patterns', () => {
-    expect(VIDEO_PATTERNS.map(pattern => pattern.id)).toEqual(['cinematic', 'dynamic', 'minimal', 'album', 'social', 'noir', 'neon', 'polaroid'])
-    expect(new Set(VIDEO_PATTERNS.map(pattern => pattern.accent)).size).toBe(8)
+  it('provides all twelve selectable video patterns', () => {
+    expect(VIDEO_PATTERNS.map(pattern => pattern.id)).toEqual(['cinematic', 'dynamic', 'minimal', 'album', 'social', 'noir', 'neon', 'polaroid', 'vhs', 'glow', 'comic', 'editorial'])
+    expect(new Set(VIDEO_PATTERNS.map(pattern => pattern.accent)).size).toBe(12)
     expect(getVideoPattern('social').name).toEqual({ en: 'Social trend', ja: 'SNSトレンド' })
     expect(getVideoPattern('neon').name).toEqual({ en: 'Neon', ja: 'ネオン' })
+    expect(getVideoPattern('editorial').name).toEqual({ en: 'Editorial', ja: 'エディトリアル' })
   })
 
   it('validates stored pattern ids and falls back safely', () => {
@@ -68,21 +69,27 @@ describe('reel timeline', () => {
       expect(frame.textOpacity).toBeLessThanOrEqual(1)
       expect(frame.scale).toBeGreaterThan(0)
     })
-    expect(new Set(frames.map(frame => `${frame.scale}:${frame.translateX}:${frame.textScale}`)).size).toBe(8)
+    expect(new Set(frames.map(frame => `${frame.scale}:${frame.translateX}:${frame.textScale}`)).size).toBe(12)
     expect(getPatternFrame('cinematic', -1)).toEqual(getPatternFrame('cinematic', 0))
     expect(getPatternFrame('cinematic', 2)).toEqual(getPatternFrame('cinematic', 1))
   })
 
-  it('gives every pattern its own color grade and signature decoration', () => {
-    expect(new Set(VIDEO_PATTERNS.map(pattern => pattern.filter)).size).toBe(8)
-    expect(VIDEO_PATTERNS.map(pattern => pattern.decoration)).toEqual(['letterbox', 'none', 'vignette', 'frame', 'badge', 'grain', 'scanlines', 'polaroid'])
+  it('gives every pattern its own color grade, signature decoration, and text treatment', () => {
+    expect(new Set(VIDEO_PATTERNS.map(pattern => pattern.filter)).size).toBe(12)
+    expect(VIDEO_PATTERNS.map(pattern => pattern.decoration)).toEqual(['letterbox', 'none', 'vignette', 'frame', 'badge', 'grain', 'scanlines', 'polaroid', 'tracking', 'glow', 'halftone', 'blockframe'])
+    expect(VIDEO_PATTERNS.map(pattern => pattern.textStyle)).toEqual(['default', 'default', 'minimal', 'left', 'upper', 'default', 'glow', 'default', 'default', 'minimal', 'upper', 'left'])
+    // Every decoration and text style is exercised by at least one pattern - no dead enum values.
+    const decorations: string[] = ['letterbox', 'vignette', 'frame', 'badge', 'none', 'grain', 'scanlines', 'polaroid', 'tracking', 'glow', 'halftone', 'blockframe']
+    for (const decoration of decorations) expect(VIDEO_PATTERNS.some(pattern => pattern.decoration === decoration)).toBe(true)
+    const textStyles: string[] = ['default', 'minimal', 'left', 'upper', 'glow']
+    for (const textStyle of textStyles) expect(VIDEO_PATTERNS.some(pattern => pattern.textStyle === textStyle)).toBe(true)
   })
 
   it('only flashes on cut for the dynamic pattern, fading out quickly', () => {
     expect(getPatternFrame('dynamic', 0).flashOpacity).toBeGreaterThan(0)
     expect(getPatternFrame('dynamic', 0).flashOpacity).toBeLessThanOrEqual(1)
     expect(getPatternFrame('dynamic', 1).flashOpacity).toBe(0)
-    for (const pattern of ['minimal', 'album', 'social', 'cinematic', 'noir', 'neon', 'polaroid'] as const) expect(getPatternFrame(pattern, 0).flashOpacity).toBe(0)
+    for (const pattern of VIDEO_PATTERNS.map(item => item.id)) { if (pattern !== 'dynamic') expect(getPatternFrame(pattern, 0).flashOpacity).toBe(0) }
   })
 
   it('scales motion amount with the actual per-image duration, not just its timing curve', () => {

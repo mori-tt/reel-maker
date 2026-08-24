@@ -54,16 +54,20 @@ Below that, choose **Standard** (30fps, smaller file) or **High quality** (60fps
 
 ### 4. Motion style
 
-Under **"Motion style"**, pick one of eight looks. Each has its own pacing, color grade, and a signature visual touch — not just a faster or slower zoom:
+Under **"Motion style"**, pick one of twelve looks. Each has its own pacing, color grade, signature visual touch, and text treatment (alignment, capitalization, shadow style) — not just a faster or slower zoom:
 
 - **Cinematic** — slow zoom, letterbox bars, muted color — for reflective, story-like content
 - **Dynamic** — fast zoom/slide, a quick white flash on every cut, vivid color — for energetic, attention-grabbing content
-- **Minimal** — quiet transitions, a soft darkened vignette, gentle color — for clean, understated content
-- **Photo album** — gentle pan, warm sepia tone with a soft frame — for nostalgic, memory-style content
-- **Social trend** — quick cuts, a small pulsing accent badge, bold saturated color — for trend-driven, social-native content
+- **Minimal** — quiet transitions, a soft darkened vignette, gentle color, smaller/lighter title — for clean, understated content
+- **Photo album** — gentle pan, warm sepia tone with a soft frame, left-aligned title — for nostalgic, memory-style content
+- **Social trend** — quick cuts, a small pulsing accent badge, bold saturated color, uppercase title — for trend-driven, social-native content
 - **Noir** — dramatic zoom, grayscale, film grain texture — for moody, cinematic-mystery content
-- **Neon** — pulsing zoom, scan lines, electric color — for nightlife or high-energy content
+- **Neon** — pulsing zoom, scan lines, electric color, glowing title — for nightlife or high-energy content
 - **Polaroid** — gentle drift, an instant-photo border (thicker at the bottom), faded tone — for casual, personal-memory content
+- **VHS** — a drifting tracking-line glitch, warm retro tone, gentle drift — for nostalgic, home-video content
+- **Glow** — soft bloom, dreamy warmth, floaty zoom, smaller/lighter title — for soft, poetic content
+- **Comic** — halftone dot texture, bold pop color, punchy cuts, uppercase title — for playful, high-energy content
+- **Editorial** — a bold color-block accent bar, sharp contrast, left-aligned title — for confident, magazine-style content
 
 The preview updates live so you can compare before exporting. Longer per-image durations also move proportionally more than shorter ones for the same style, so an 8-second hold doesn't feel static next to a 2-second one.
 
@@ -153,16 +157,20 @@ Frameflowは、手持ちの写真から投稿先に合わせたショート動�
 
 ### 4. 動画パターン
 
-**「動画パターン」**から8種類の演出を選べます。それぞれ速さだけでなく、色調や専用の視覚効果まで変えているので、はっきり見た目が異なります。
+**「動画パターン」**から12種類の演出を選べます。それぞれ速さだけでなく、色調・視覚効果・文字の見せ方（配置・大文字化・影）まで変えているので、はっきり見た目が異なります。
 
 - **シネマティック** — ゆっくりズーム、上下のレターボックス、落ち着いた色調。振り返るような、物語的な内容向き
 - **ダイナミック** — 速いズーム・スライド、カットごとの白フラッシュ、鮮やかな色調。勢いのある、目を引く内容向き
-- **ミニマル** — 静かな切り替え、柔らかい周辺減光（ビネット）、穏やかな色調。すっきりと控えめな内容向き
-- **フォトアルバム** — 柔らかなパン、暖色のセピア調と柔らかいフレーム。懐かしさや思い出を伝える内容向き
-- **SNSトレンド** — 短いカット、鼓動するアクセントバッジ、鮮やかで彩度の高い色調。トレンド感のある、SNSらしい内容向き
+- **ミニマル** — 静かな切り替え、柔らかい周辺減光（ビネット）、穏やかな色調、小さめで軽いタイトル。すっきりと控えめな内容向き
+- **フォトアルバム** — 柔らかなパン、暖色のセピア調と柔らかいフレーム、左寄せタイトル。懐かしさや思い出を伝える内容向き
+- **SNSトレンド** — 短いカット、鼓動するアクセントバッジ、鮮やかで彩度の高い色調、大文字タイトル。トレンド感のある、SNSらしい内容向き
 - **フィルムノワール** — ドラマチックなズーム、モノクロ、フィルム粒子。ミステリアスで映画的な内容向き
-- **ネオン** — 脈打つズーム、走査線、電飾カラー。ナイトライフやハイテンションな内容向き
+- **ネオン** — 脈打つズーム、走査線、電飾カラー、光るタイトル。ナイトライフやハイテンションな内容向き
 - **ポラロイド** — 柔らかな漂うような動き、ポラロイド風フレーム（下側が厚め）、褪せた色調。カジュアルで個人的な思い出向き
+- **VHS風** — ゆっくり漂うトラッキングノイズ、暖かみのあるレトロ色調、緩やかな動き。懐かしいホームビデオ風の内容向き
+- **グロウ** — 柔らかい光の滲み、夢見心地な暖かさ、漂うようなズーム、小さめで軽いタイトル。柔らかく詩的な内容向き
+- **コミック** — ハーフトーンドットの質感、ポップな色調、小気味よいカット、大文字タイトル。遊び心のある、テンションの高い内容向き
+- **エディトリアル** — 大胆なカラーブロックのアクセントバー、シャープなコントラスト、左寄せタイトル。自信のある、雑誌のような内容向き
 
 プレビューはリアルタイムで更新されるので、書き出す前に見比べられます。1枚あたりの表示時間が長いほど、同じ演出でも動きの量が比例して大きくなるため、8秒の表示が2秒の表示に比べて動きが単調に感じにくくなっています。
 
