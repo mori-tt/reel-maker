@@ -102,6 +102,17 @@ Vercel上のアプリから、利用者のMacにある `localhost:11434` へ直�
 
 `OLLAMA_BASE_URL` が未設定の場合、Vercel上のAI APIは503を返し、設定不足を画面に表示します。
 
+### Basic認証（サイト全体を保護）
+
+`middleware.ts`（Vercel Edge Middleware）でサイト全体（静的アプリ＋`/api/*`）にHTTP Basic認証をかけられます。Vercelの無料プランを含む全プランで動作する方式です（Password ProtectionはPro/Enterprise向けの有料機能のため、こちらを採用しています）。
+
+Vercelプロジェクトの Settings → Environment Variables で以下を設定すると有効になります。
+
+- `BASIC_AUTH_USER`: ログインユーザー名
+- `BASIC_AUTH_PASSWORD`: ログインパスワード
+
+両方とも未設定の場合はアプリ全体が500エラーになり（設定漏れで無防備に公開されるのを防ぐフェールクローズ）、片方だけ・不一致の場合は401でブラウザの認証ダイアログが表示されます。環境変数はコードにもlocalStorageにも保存されません。設定変更後は再デプロイが必要です。
+
 ## テストとビルド
 
 ```bash
