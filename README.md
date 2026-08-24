@@ -8,7 +8,7 @@
 
 ## English
 
-Frameflow turns a set of photos into a polished short video sized for wherever you're posting it — Instagram (Reel / Story / feed), TikTok, or YouTube (Shorts or standard 16:9 video). Regular use — adding photos, converting HEIC, picking a motion style, exporting — happens entirely in your browser; no photo is sent anywhere for that. A photo only leaves your device if you turn on AI copy suggestions and use Local Ollama or Ollama Cloud (Chrome's on-device AI never sends the image off your device either); see [AI copy suggestions](#ai-copy-suggestions) below for which is which.
+Frameflow turns a set of photos into a polished short video sized for wherever you're posting it — Instagram (Reel / Story / feed), TikTok, or YouTube (Shorts or standard 16:9 video). Regular use — adding photos, converting HEIC, picking a motion style, exporting — happens entirely in your browser; no photo is sent anywhere for that. A photo only leaves your device if you turn on AI copy suggestions and use Local Ollama or Ollama Cloud (Chrome's on-device AI never sends the image off your device either), or if you use the separate AI image generation/editing feature, which always goes through Google's Gemini API; see [AI copy suggestions](#ai-copy-suggestions) and [AI image generation & editing](#ai-image-generation) below for which is which.
 
 Frameflow doesn't publish or upload directly to Instagram, TikTok, or YouTube — that would require each platform's own developer registration, OAuth, and (for most of them) business/app review, which is a different kind of project from a client-side tool like this. Instead, it focuses on what a browser-only app can do well: correct formats and safe areas for each platform, a ready-to-copy caption + hashtags, and (where the browser/device supports it) handing the finished file straight to that platform's own app via the OS share sheet.
 
@@ -28,6 +28,7 @@ This README covers setup, deployment, and configuration. For a walkthrough of us
 - Background music: upload your own track, or pick one of 8 built-in generated moods (Calm, Uplifting, Cinematic, Playful, Dramatic, Lofi, Energetic, Acoustic) - either way it's trimmed/looped to the video's length with a fade-in at the start and a fade-out at the end (MP4 export only). The built-in tracks are synthesized live from a chord progression right in your browser (see [Where the background music comes from](#where-the-background-music-comes-from)) - not sampled from anywhere, so there's no licensing to think about. Every mood (and whatever track is currently selected) has a play/pause button for a quick sample before committing to it
 - Export every slide as a set of still images (e.g. an Instagram carousel post) in addition to video, using the same color grade/decoration/text as the chosen motion style
 - AI copy suggestions via Chrome on-device AI, Local Ollama, or Ollama Cloud, plus non-copywriting uses of the same vision models for focal-point detection and style suggestion (see [Chrome/Ollama AI beyond copywriting](#chromeollama-ai-beyond-copywriting)). Every AI-dependent button is disabled with a specific, visible reason (not just silently unclickable) until the selected provider is actually confirmed reachable - checking Chrome's on-device model availability, an actual Local Ollama connection, or an actual Ollama Cloud connection, never just whether a model name has been typed in
+- AI image generation & editing via Google's Gemini API - the one provider in this app that can actually produce new image pixels rather than just describing an existing photo. Generate a brand-new image from a text prompt (added as a new slide), or edit an existing photo with an instruction (background swap, relighting, adding/removing something) without losing the original - see [AI image generation & editing](#ai-image-generation). Requires a `GEMINI_API_KEY` on the server and bills to your Google account; the button is disabled with that exact reason if the key isn't configured
 - "Export video" opens an on-screen player (with the mixed-in BGM, if any) to watch before choosing to download or share, rather than downloading immediately
 - English / Japanese UI (English by default)
 - Export quality presets: Standard (30fps, 16 Mbps), High quality (60fps, 42 Mbps), and Ultra HD (60fps, 80 Mbps, 2x resolution - true 4K on formats based on a 1080p canvas) — Standard/High render at the format's base resolution (e.g. 1080x1920 for a 9:16 format); Ultra HD doubles both dimensions
@@ -105,17 +106,31 @@ The same on-device/Ollama vision models used for per-image title/CTA and the who
 
 Both ask the model to choose from a small fixed set of labels rather than open-ended output, deliberately: testing against a small on-device model (`gemma3:4b`) showed it reliably collapsed free-form `x`/`y` coordinates to `{"x":0.5,"y":0.5}` (dead center) regardless of where the subject actually was, but reasoned much more sensibly about which third of the frame something was in - and it shows real (if imperfect) sensitivity to a photo's actual color/mood when picking a style, rather than always returning the same choice, though a large 18-way choice is inherently harder for a small model than 9 grid cells. This is a real, current limitation of small vision-language models, not a bug in the prompt/parsing - a stronger model (e.g. `qwen2.5vl`, which is specifically known for better visual grounding) may do noticeably better with the exact same code path. Either way, the UI treats every suggestion as a starting point to review, not a final answer - a focal point still shows the same draggable dot, and a suggested style still shows in the same style picker/override dropdown you'd use manually.
 
-There's no equivalent "beyond copywriting" use for actual pixel generation/editing: Chrome's Prompt API and Ollama's vision models can *understand* an image and respond with text or a choice from a list (a title, a caption, a grid cell, a style id), but none of them can output new pixels - that would be a fundamentally different kind of model (image generation/inpainting), which isn't what's available on-device today. Every "AI-generated" image or video in this app is really the app's own deterministic renderer, driven by settings an AI helped choose.
+Chrome's Prompt API and Ollama's vision models can *understand* an image and respond with text or a choice from a list (a title, a caption, a grid cell, a style id), but none of them can output new pixels - that would be a fundamentally different kind of model (image generation/inpainting), which isn't what's available on-device or through Ollama today. Every "AI-generated" image or video everywhere *else* in this app is really the app's own deterministic renderer, driven by settings an AI helped choose. The one exception - actual pixel generation/editing through a separate, Google-billed API - is covered next.
+
+<a id="ai-image-generation"></a>
+
+### AI image generation & editing (Google Gemini)
+
+Unlike everything above, [Google's Gemini API](https://ai.google.dev/) can genuinely produce new image pixels - both generating an image from a text prompt and editing an existing photo according to an instruction (swap the background, change the lighting, add or remove something, restyle it, ...). This is a fundamentally different capability from the Chrome/Ollama vision models used everywhere else in this app, so it's kept in its own card in the UI ("AI image generation & editing"), with its own availability check, rather than folded into the AI copy suggestions provider tabs.
+
+- **Generate a new image**: describe what you want, and the result is added as a brand-new slide - for a custom cover image, background, or decorative element that didn't come from a photo you took.
+- **Edit an existing photo**: type an instruction next to any photo's card and click "AI edit image". The result replaces that slide's working image, but the original is kept and a "Revert to original" button appears - so an edit is never a one-way loss of the photo you uploaded.
+
+This is implemented in `src/gemini.ts` (request building, response parsing) and proxied through the `/api/gemini` serverless function (`api/gemini.ts`), which injects the API key server-side - the browser never sees it, the same pattern the existing `/api/ollama` proxy uses for Ollama Cloud. The button is disabled, with a plain-language reason, until the server reports `GEMINI_API_KEY` is actually configured (see [AI availability and disabled buttons](#ai-availability) above) - there's no way to accidentally use it, or hit a confusing failure, if it hasn't been set up.
+
+**This is a paid, external API call, unlike everything else in this section.** Chrome's on-device AI and a self-hosted Local Ollama are both free; Gemini requests are billed to whichever Google account owns the API key, based on Google's current pricing for the model in use. Get a key from [Google AI Studio](https://aistudio.google.com/), set it as `GEMINI_API_KEY` on the server (see [Deploying to Vercel](#deploying-to-vercel)), and optionally override `GEMINI_IMAGE_MODEL` if Google renames or deprecates the default model (`gemini-2.5-flash-image` at the time of writing). Since image generation is a newer, fast-moving part of the Gemini API, double-check the current model name and pricing against Google's own docs before relying on this in production - this integration could not be tested against a real Gemini API key during development (no key was available), only against the documented request/response schema and a mocked server response exercising the full generate/edit/revert UI flow; a stale endpoint or field name on Google's side would surface as a visible error (via the same error-detail surfacing as Ollama Cloud) rather than silently failing, but hasn't been confirmed against the live API.
 
 <a id="ai-availability"></a>
 
 ### AI availability and disabled buttons
 
-Every AI-dependent button (copy suggestions, the whole-post caption, focal-point detection, style suggestion) is disabled - with a specific reason shown above the provider tabs - until the currently-selected provider is confirmed usable, not just when a model name happens to be typed into a field:
+Every AI-dependent button (copy suggestions, the whole-post caption, focal-point detection, style suggestion, and the separate Gemini image generation/editing above) is disabled - with a specific reason shown above the relevant provider tabs - until that provider is confirmed usable, not just when a model name happens to be typed into a field:
 
 - **Chrome on-device AI**: disabled until "Check availability and prepare automatically" reports the model is actually `available` in this browser.
 - **Local Ollama**: disabled until "Detect endpoint and models" successfully connects; switching away from Local Ollama and back requires reconnecting, so a stale success from a previous session (or the other provider) can't leave a button looking ready when it isn't.
-- **Ollama Cloud**: same as Local Ollama, but via "Connect and fetch models" through the `/api/ollama` proxy (see [Deploying to Vercel](#deploying-to-vercel) below for its server-side setup). If the server's `OLLAMA_CLOUD_API_KEY` isn't configured, the proxy returns a specific error (`OLLAMA_CLOUD_API_KEY is not configured.`) and the app now surfaces that exact message instead of a bare status code, so it's clear the fix is a deployment configuration issue rather than something to retry.
+- **Ollama Cloud**: same as Local Ollama, but via "Connect and fetch models" through the `/api/ollama` proxy (see [Deploying to Vercel](#deploying-to-vercel) below for its server-side setup). It's additionally pre-flagged as unavailable the moment you switch to its tab - before you even try to connect - if the server itself has no `OLLAMA_CLOUD_API_KEY` (see the `/api/config` check below); if you do try to connect without one, the proxy returns a specific error (`OLLAMA_CLOUD_API_KEY is not configured.`) and the app surfaces that exact message instead of a bare status code.
+- **Gemini image generation/editing**: unlike the three above, there's no "connect" step to click - on load, the app calls a lightweight `GET /api/config` (see `api/config.ts`) that reports which server-side keys exist (`{"ollamaCloud": boolean, "gemini": boolean}`, never the key values themselves, and at no cost since it never calls Ollama or Google). The Gemini card and every per-photo "AI edit image" button are disabled with "GEMINI_API_KEY is missing" until that check reports `true`.
 
 <a id="ai-copy-suggestions"></a>
 
@@ -181,7 +196,7 @@ If you open the app from a `https://` public URL, the browser may block the loca
 
 ### Deploying to Vercel
 
-`vercel.json` and the `/api/ollama` serverless proxy are already included.
+`vercel.json` and the `/api/ollama`, `/api/gemini`, and `/api/config` serverless functions are already included.
 
 ```bash
 vercel
@@ -193,6 +208,13 @@ For Ollama Cloud, set on the Vercel project:
 - `OLLAMA_CLOUD_BASE_URL` — only if you need a non-default Cloud API base URL (defaults to `https://ollama.com`)
 
 For a self-hosted Ollama-compatible proxy instead, set `OLLAMA_BASE_URL` and, if needed, `OLLAMA_API_KEY`. API keys are never stored in the frontend or in `localStorage`.
+
+For AI image generation & editing (see [AI image generation & editing](#ai-image-generation) above), set:
+
+- `GEMINI_API_KEY` — your Google Gemini API key, from [Google AI Studio](https://aistudio.google.com/). This is a billed API, unlike everything else above.
+- `GEMINI_IMAGE_MODEL` — optional, only if you need to override the default model (`gemini-2.5-flash-image`), e.g. if Google renames or deprecates it.
+
+If neither `GEMINI_API_KEY` nor `OLLAMA_CLOUD_API_KEY`/`OLLAMA_BASE_URL` is set, the app still works fully for everything that isn't AI-related, and Chrome's on-device AI still works if the visitor's browser supports it - only the buttons that specifically need a missing key are disabled, each with a message naming exactly which one.
 
 #### Important constraint
 
@@ -241,7 +263,7 @@ npm run build
 
 ## 日本語
 
-画像から、投稿先に合わせたショート動画を作るWebアプリです。Instagram（リール／ストーリー／フィード）、TikTok、YouTube（Shorts、または16:9の通常動画）に対応しています。通常の操作（画像の追加・HEIC変換・動画パターンの選択・書き出しなど）はすべてブラウザ内だけで完結し、画像はどこにも送信されません。画像が端末の外へ送信されるのは、「AIコピー提案」機能でローカルOllamaまたはOllama Cloudを使ったときだけです（Chrome端末内AIも画像を端末の外に出しません）。どの方式がどう違うかは下記[AIコピー提案](#aiコピー提案)を参照してください。
+画像から、投稿先に合わせたショート動画を作るWebアプリです。Instagram（リール／ストーリー／フィード）、TikTok、YouTube（Shorts、または16:9の通常動画）に対応しています。通常の操作（画像の追加・HEIC変換・動画パターンの選択・書き出しなど）はすべてブラウザ内だけで完結し、画像はどこにも送信されません。画像が端末の外へ送信されるのは、「AIコピー提案」機能でローカルOllamaまたはOllama Cloudを使ったとき、または別機能である「AI画像生成・編集」（常にGoogleのGemini APIを経由します）を使ったときだけです（Chrome端末内AIも画像を端末の外に出しません）。どの方式がどう違うかは下記[AIコピー提案](#aiコピー提案)・[AI画像生成・編集](#ai画像生成編集)を参照してください。
 
 FrameflowはInstagram・TikTok・YouTubeへの直接投稿・アップロードには対応していません。それには各プラットフォームでの開発者登録・OAuth認証、多くの場合ビジネス確認やアプリ審査が必要で、本アプリのようなクライアントサイドのツールとは別種のプロジェクトになります。代わりに、ブラウザ完結のアプリとして得意なこと——各プラットフォームに合った用途・安全領域、コピペしやすいキャプション＋ハッシュタグの生成、対応ブラウザ・端末であればOSの共有シートを通じて完成ファイルをそのアプリへ直接渡すこと——に注力しています。
 
@@ -338,17 +360,31 @@ Frameflowは音声ファイルを同梱・ダウンロードしたり、いわ�
 
 どちらも、自由な出力ではなく、あらかじめ決まった少数の候補から選ばせる方式を採用しています。小型の端末内モデル（`gemma3:4b`）で検証したところ、自由形式の`x`/`y`座標を聞くと被写体の実際の位置に関わらず`{"x":0.5,"y":0.5}`（中央固定）に収束してしまう一方、画面のどの三分割エリアにあるかという問いにはずっと妥当に答えられることが分かりました。スタイル提案についても、常に同じ答えを返すわけではなく、写真の色調・雰囲気にある程度反応して選択が変わることを確認していますが、9マスのグリッドより18択の方が小型モデルにとっては難しい課題です。これは小型の画像言語モデルが持つ、現時点での実際の限界であり、プロンプトやパース処理側の不具合ではありません——より高性能なモデル（例えば視覚的グラウンディングに強いとされる`qwen2.5vl`など）を使えば、同じコードのまま明らかに良い結果が得られる可能性があります。いずれにしても、UI上はどの提案も「最終回答」ではなく「確認・調整の出発点」として扱っており、フォーカルポイントは手動で置くのと同じドットで、スタイル提案も普段使うスタイル選択・上書きの仕組みでそのまま調整できます。
 
-画像そのものの生成・編集については、「コピー生成以外」に相当する使い道は今のところありません。Chrome Prompt APIやOllamaの画像認識モデルは画像を理解して文章や一覧からの選択（タイトル・キャプション・グリッドのマス・スタイルid）で答えることはできますが、新しいピクセルを出力することはできません。それには画像生成・インペインティングという根本的に別種のモデルが必要で、現時点で端末内で使えるものではないためです。本アプリで「AIが生成した」ように見える画像・動画は、実際にはAIが選んだ設定に基づいて、アプリ自身の決定論的なレンダラーが描画したものです。
+Chrome Prompt APIやOllamaの画像認識モデルは画像を理解して文章や一覧からの選択（タイトル・キャプション・グリッドのマス・スタイルid）で答えることはできますが、新しいピクセルを出力することはできません。それには画像生成・インペインティングという根本的に別種のモデルが必要で、端末内やOllamaでは現時点で使えるものではないためです。本アプリの他の部分で「AIが生成した」ように見える画像・動画は、実際にはAIが選んだ設定に基づいて、アプリ自身の決定論的なレンダラーが描画したものです。実際にピクセルそのものを生成・編集できる唯一の例外——別のGoogle課金APIによるもの——を次に説明します。
+
+<a id="ai画像生成編集"></a>
+
+### AI画像生成・編集（Google Gemini）
+
+これまでの機能とは異なり、[Google Gemini API](https://ai.google.dev/)は実際に新しい画像のピクセルを生成できます——プロンプトから画像を生成することも、指示に沿って既存の写真を編集することも可能です（背景の変更、光の当たり方の変更、要素の追加・削除、スタイルの変更など）。これは本アプリの他の部分で使っているChrome/Ollamaの画像認識モデルとは根本的に異なる能力のため、UI上も別カード（「AI画像生成・編集」）として独立させ、AIコピー提案のプロバイダータブとは別に、それ自体の利用可否チェックを持たせています。
+
+- **新しい画像を生成**：欲しい画像を説明すると、その結果が新しいスライドとして追加されます。撮影した写真ではない、オリジナルのカバー画像・背景・装飾要素などに使えます。
+- **既存の写真を編集**：各写真のカードの横に指示文を入力し、「AIで画像を編集」を押します。結果はそのスライドの画像を置き換えますが、元の画像は保持され「元に戻す」ボタンが表示されます——編集によってアップロードした写真が失われることはありません。
+
+実装は`src/gemini.ts`（リクエスト構築・レスポンス解析）と、`/api/gemini`サーバーレス関数（`api/gemini.ts`）経由のプロキシで、APIキーはサーバー側にのみ保持されます（ブラウザには渡りません）。これはOllama Cloud向けの既存の`/api/ollama`プロキシと同じ考え方です。ボタンは、サーバーが`GEMINI_API_KEY`を実際に設定していると報告するまで、平易な理由文とともに無効化されます（上記[AIの利用可否とボタンの無効化](#aiの利用可否とボタンの無効化)を参照）——未設定のまま誤って使ってしまったり、分かりにくい失敗に遭遇したりすることはありません。
+
+**この項目は、他のすべてと異なり、有料の外部API呼び出しです。** Chrome端末内AIと自前ホストのローカルOllamaはいずれも無料ですが、Geminiへのリクエストは、APIキーを持つGoogleアカウントに対して、使用するモデルのGoogle側の現行料金に基づき課金されます。[Google AI Studio](https://aistudio.google.com/)でキーを取得し、サーバーに`GEMINI_API_KEY`として設定してください（[Vercelへのデプロイ](#vercelへのデプロイ)を参照）。既定のモデル（本稿執筆時点では`gemini-2.5-flash-image`）をGoogleがリネームまたは廃止した場合に備えて、`GEMINI_IMAGE_MODEL`で上書きすることもできます。画像生成はGemini APIの中でも新しく変化の速い部分のため、実運用前にGoogle公式ドキュメントで現在のモデル名・料金を必ず確認してください——この統合機能は開発中に実際のGemini APIキーで検証できておらず（利用可能なキーがなかったため）、公開されているリクエスト・レスポンス仕様と、モックしたサーバー応答による生成・編集・元に戻すの一連のUIフロー確認のみを行っています。Google側のエンドポイントやフィールド名が変わっていた場合は（Ollama Cloudと同じエラー詳細表示の仕組みにより）目に見えるエラーとして表示されるはずですが、実際のAPIでは未確認です。
 
 <a id="aiの利用可否とボタンの無効化"></a>
 
 ### AIの利用可否とボタンの無効化
 
-AIに関するボタン（コピー提案、投稿キャプション、フォーカルポイント検出、スタイル提案）はすべて、単にモデル名が入力されているかだけでなく、選んだ方式が実際に使える状態であることが確認できるまで、具体的な理由付きで無効化されます：
+AIに関するボタン（コピー提案、投稿キャプション、フォーカルポイント検出、スタイル提案、および上記の別機能であるGemini画像生成・編集）はすべて、単にモデル名が入力されているかだけでなく、該当する方式が実際に使える状態であることが確認できるまで、具体的な理由付きで無効化されます：
 
 - **Chrome端末内AI**：「利用状況を確認して自動準備」でモデルが実際に`available`（利用可能）と判定されるまで無効です。
 - **ローカルOllama**：「接続先とモデルを自動検出」で接続に成功するまで無効です。ローカルOllamaから切り替えて戻ってきた場合も再接続が必要になるため、前回の接続成功（または別方式での成功）がそのまま「利用可能」として残ることはありません。
-- **Ollama Cloud**：ローカルOllamaと同様ですが、「接続してモデル一覧を取得」から`/api/ollama`プロキシ経由で接続します（サーバー側の設定は下記「Vercelへのデプロイ」を参照）。サーバーの`OLLAMA_CLOUD_API_KEY`が設定されていない場合、プロキシは具体的なエラー（`OLLAMA_CLOUD_API_KEY is not configured.`）を返し、単なるステータスコードではなくその内容をそのまま表示するため、リトライすべき問題ではなくデプロイ設定の問題であることが分かります。
+- **Ollama Cloud**：ローカルOllamaと同様ですが、「接続してモデル一覧を取得」から`/api/ollama`プロキシ経由で接続します（サーバー側の設定は下記「Vercelへのデプロイ」を参照）。さらに、タブを切り替えた時点で——実際に接続を試す前から——サーバー自体に`OLLAMA_CLOUD_API_KEY`が設定されていなければ、あらかじめ利用不可として表示されます（下記の`/api/config`チェックを参照）。それでも接続を試みた場合、プロキシは具体的なエラー（`OLLAMA_CLOUD_API_KEY is not configured.`）を返し、単なるステータスコードではなくその内容をそのまま表示します。
+- **Gemini画像生成・編集**：上記3つとは異なり、クリックして接続する手順はありません。読み込み時にアプリが軽量な`GET /api/config`（`api/config.ts`参照）を呼び出し、サーバー側にどのキーが存在するかを（キーの値自体は一切含めず、Ollama・Googleのどちらも呼び出さずコストゼロで）`{"ollamaCloud": boolean, "gemini": boolean}`として報告します。Geminiのカードと各写真の「AIで画像を編集」ボタンは、このチェックが`true`を返すまで「GEMINI_API_KEYが未設定です」として無効化されます。
 
 <a id="aiコピー提案"></a>
 
@@ -414,7 +450,7 @@ brew services restart ollama
 
 ### Vercelへのデプロイ
 
-`vercel.json` と `/api/ollama` のサーバーレスプロキシを追加済みです。
+`vercel.json` と `/api/ollama`・`/api/gemini`・`/api/config` のサーバーレス関数を追加済みです。
 
 ```bash
 vercel
@@ -426,6 +462,13 @@ VercelプロジェクトにはOllama Cloud用として以下を設定します�
 - `OLLAMA_CLOUD_BASE_URL` — 必要な場合のみCloud APIのベースURL（未設定時は `https://ollama.com`）
 
 従来の任意Ollamaプロキシを使う場合は、`OLLAMA_BASE_URL` と必要に応じて `OLLAMA_API_KEY` を設定します。APIキーをフロントエンドやlocalStorageへ保存しない設計です。
+
+AI画像生成・編集（上記[AI画像生成・編集](#ai画像生成編集)参照）には以下を設定します。
+
+- `GEMINI_API_KEY` — Google GeminiのAPIキー（[Google AI Studio](https://aistudio.google.com/)から取得）。上記の他の機能とは異なり、これは課金対象のAPIです。
+- `GEMINI_IMAGE_MODEL` — 既定モデル（`gemini-2.5-flash-image`）をGoogleがリネーム・廃止した場合など、上書きが必要な場合のみ設定します。
+
+`GEMINI_API_KEY`も`OLLAMA_CLOUD_API_KEY`/`OLLAMA_BASE_URL`も設定していない場合でも、AI関連以外の機能はすべて問題なく動作し、訪問者のブラウザが対応していればChrome端末内AIも動作します。未設定のキーが必要なボタンだけが、どのキーが必要かを明示したメッセージ付きで無効化されます。
 
 #### 重要な制約
 

@@ -12,7 +12,7 @@ This guide covers day-to-day use of the app (turning photos into a video). For l
 
 ### What Frameflow does
 
-Frameflow turns a set of photos into a short video sized for wherever you're posting it — Instagram (Reel, Story, or feed), TikTok, or YouTube (Shorts, standard video, or square) — directly in your browser. Regular use never sends a photo anywhere. The only exception is [AI copy suggestions](#ai-copy-suggestions-en): two of its three options (Local Ollama and Ollama Cloud) do send the image elsewhere, while Chrome's on-device AI keeps it on your device too.
+Frameflow turns a set of photos into a short video sized for wherever you're posting it — Instagram (Reel, Story, or feed), TikTok, or YouTube (Shorts, standard video, or square) — directly in your browser. Regular use never sends a photo anywhere. The exceptions are [AI copy suggestions](#ai-copy-suggestions-en) (two of its three options, Local Ollama and Ollama Cloud, do send the image elsewhere, while Chrome's on-device AI keeps it on your device) and [AI image generation & editing](#ai-image-generation-en), which always sends the photo to Google's Gemini API.
 
 ### Quick start
 
@@ -156,13 +156,24 @@ Below the per-image copy generator is a separate **"Post caption + hashtags"** c
 
 Both are genuinely useful shortcuts, but worth knowing their limits: smaller on-device models are noticeably better at judging *which general area* of a photo the subject is in than at pinpointing it exactly, and noticeably better at telling that two very different photos should get different styles than at nailing the single best one out of eighteen. Treat every suggestion the same way you'd treat AI-written copy - a fast starting point, not a final answer. A detected focal point still shows the same draggable dot, and a suggested style still shows up in the same style dropdown/picker, so nothing is locked in without your usual review.
 
-**AI availability and disabled buttons:** every AI-dependent button above (copy, caption, focal point, style) stays disabled - with a specific reason shown just above the provider tabs - until the selected provider is actually confirmed usable, not just because a model name is typed into a field. Chrome needs "Check availability and prepare automatically" to report the model is ready; Local Ollama and Ollama Cloud each need their own "Detect endpoint and models" / "Connect and fetch models" to succeed - switching between them always requires reconnecting, so success on one provider can never make a button look ready for a different one it hasn't actually verified.
+**AI availability and disabled buttons:** every AI-dependent button above (copy, caption, focal point, style) stays disabled - with a specific reason shown just above the provider tabs - until the selected provider is actually confirmed usable, not just because a model name is typed into a field. Chrome needs "Check availability and prepare automatically" to report the model is ready; Local Ollama and Ollama Cloud each need their own "Detect endpoint and models" / "Connect and fetch models" to succeed - switching between them always requires reconnecting, so success on one provider can never make a button look ready for a different one it hasn't actually verified. Ollama Cloud is additionally flagged as unavailable the moment you switch to its tab if the site itself has no cloud key configured, before you even try to connect.
 
-### 8. Preview
+<a id="ai-image-generation-en"></a>
+
+### 8. AI image generation & editing (optional)
+
+Everything above (AI copy, focal point, style) uses AI to *understand* a photo and respond with text or a choice from a list - it never changes what the photo actually looks like. The separate **"AI image generation & editing (Google Gemini)"** card can actually produce new image pixels, through Google's Gemini API:
+
+- **Generate a new image**: type a description into the box under "Generate a new image" and click **"Generate and add as a slide"**. The result is added to your story as a brand-new slide, ready to caption and style like any other photo.
+- **Edit an existing photo**: on any photo's card under "Copy for every image", type an instruction into the box next to **"AI edit image"** (for example "remove the background" or "make it look like golden hour") and click it. The result replaces that slide's photo - but the original is kept, and a **"Revert to original"** button appears on that card so you can always go back.
+
+This feature is disabled - with the reason shown right in its card - unless the site has a `GEMINI_API_KEY` configured on the server; ask whoever deployed the site if you see that message. **Unlike Chrome's on-device AI and the free Ollama options above, this one is a paid API call billed to whoever owns that key** - there's no free tier built into this app for it, only whatever Google's own Gemini pricing and any free quota on the account provide.
+
+### 9. Preview
 
 The phone-shaped preview on the right plays back your video with the fade/zoom/text timing you'll get in the final export. Use the play button and scrubber to check pacing and text placement before exporting.
 
-### 9. Export your video
+### 10. Export your video
 
 Click **"Export video"**. Frameflow renders every frame in the browser - this can take a few seconds to a couple of minutes depending on length, quality, and your device. Rather than downloading straight away, the finished render opens in an on-screen player (with normal play/pause/scrubber/volume controls) so you can actually watch and listen to it - BGM included - before deciding what to do with it:
 
@@ -174,7 +185,7 @@ Prefer stills over (or alongside) video? Click **"Export as images"** instead to
 
 Want just one photo rather than the whole batch? Each photo's card under "Copy for every image" has its own **"Export image"** button that downloads just that slide, at whatever style it's set to (its own override, or the project default) - no need to export everything else along with it.
 
-### 10. Switching languages
+### 11. Switching languages
 
 Use the **EN / 日本語** switch in the top-right corner at any time — it changes the interface language immediately without losing your work.
 
@@ -183,8 +194,10 @@ Use the **EN / 日本語** switch in the top-right corner at any time — it cha
 - **A photo's text doesn't show up in the preview/export**: check that **"Show text"** is enabled for that photo in "Copy for every image".
 - **The AI button won't do anything**: make sure at least one photo is selected in the AI card's thumbnail grid first.
 - **"Local Ollama was not found" on the live website**: expected if you're using Local Ollama from the public HTTPS site — browsers block that connection for security reasons regardless of how Ollama is configured. Use Ollama Cloud there, or run the app locally to use Local Ollama (see README.md).
+- **The "AI image generation & editing" card says it's not available**: the site doesn't have a Gemini API key configured - this is a separate, paid feature from the rest of the app's AI, so it's normal for a site to not have it set up. Ask the site owner, or see README.md if you're the one deploying it.
+- **Gemini says it couldn't generate an image**: it may have declined the specific prompt (too vague, or flagged as unsafe) rather than failed outright - try rephrasing it or being more specific.
 - **The site asks for a username and password**: that's an extra layer the site owner may have added (Basic Auth); ask them for the login details.
-- For anything about installing/configuring Ollama, deploying to Vercel, or environment variables, see [README.md](README.md).
+- For anything about installing/configuring Ollama or Gemini, deploying to Vercel, or environment variables, see [README.md](README.md).
 
 ---
 
@@ -194,7 +207,7 @@ Use the **EN / 日本語** switch in the top-right corner at any time — it cha
 
 ### Frameflowでできること
 
-Frameflowは、手持ちの写真から投稿先に合わせたショート動画（Instagram〈リール・ストーリー・フィード〉、TikTok、YouTube〈Shorts・通常動画・スクエア〉）をブラウザ内だけで作れるアプリです。通常の操作で画像がどこかへ送信されることはありません。唯一の例外は[AIコピー提案（任意）](#ai-copy-suggestions-ja)で、3方式のうちローカルOllamaとOllama Cloudの2つは画像を外部へ送信しますが、Chrome端末内AIは画像を端末の外に出しません。
+Frameflowは、手持ちの写真から投稿先に合わせたショート動画（Instagram〈リール・ストーリー・フィード〉、TikTok、YouTube〈Shorts・通常動画・スクエア〉）をブラウザ内だけで作れるアプリです。通常の操作で画像がどこかへ送信されることはありません。例外は[AIコピー提案（任意）](#ai-copy-suggestions-ja)（3方式のうちローカルOllamaとOllama Cloudの2つは画像を外部へ送信しますが、Chrome端末内AIは画像を端末の外に出しません）と、[AI画像生成・編集（任意）](#ai-image-generation-ja)（常にGoogleのGemini APIへ写真を送信します）です。
 
 ### かんたんな流れ
 
@@ -338,13 +351,24 @@ BGMはMP4書き出し時のみ反映されます。新しいWebCodecs APIに対�
 
 どちらも便利な機能ですが、限界も知っておいてください：小型の端末内モデルは、被写体が「画面のおおまかにどのあたりにあるか」を判断するのは比較的得意ですが「正確にどこか」まで言い当てるのは苦手な傾向があり、スタイル提案についても「明らかに違う雰囲気の写真同士を区別する」のは比較的得意ですが「18種類の中から最適な1つを言い当てる」のは苦手な傾向があります。そのため、どちらの提案結果もAIが書いたコピーと同じように——最終回答ではなく、たたき台として——扱ってください。フォーカルポイント検出後は必ずドットが表示され、スタイル提案後も普段のスタイル選択・上書きの仕組みがそのまま使えるので、必要に応じて調整できます。
 
-**AIの利用可否とボタンの無効化：** 上記のAI関連ボタン（コピー、キャプション、フォーカルポイント、スタイル）はすべて、単にモデル名が入力されているかだけでなく、選んだ方式が実際に使える状態であることが確認できるまで、具体的な理由付きで（プロバイダー選択タブの上に表示されます）無効化されます。Chrome端末内AIは「利用状況を確認して自動準備」でモデルの準備完了が報告されるまで、ローカルOllamaとOllama Cloudはそれぞれ「接続先とモデルを自動検出」／「接続してモデル一覧を取得」で接続が成功するまで無効です。方式を切り替えるたびに再接続が必要になるため、一方の方式での成功が別の方式のボタンをうっかり「利用可能」に見せることはありません。
+**AIの利用可否とボタンの無効化：** 上記のAI関連ボタン（コピー、キャプション、フォーカルポイント、スタイル）はすべて、単にモデル名が入力されているかだけでなく、選んだ方式が実際に使える状態であることが確認できるまで、具体的な理由付きで（プロバイダー選択タブの上に表示されます）無効化されます。Chrome端末内AIは「利用状況を確認して自動準備」でモデルの準備完了が報告されるまで、ローカルOllamaとOllama Cloudはそれぞれ「接続先とモデルを自動検出」／「接続してモデル一覧を取得」で接続が成功するまで無効です。方式を切り替えるたびに再接続が必要になるため、一方の方式での成功が別の方式のボタンをうっかり「利用可能」に見せることはありません。Ollama Cloudについては、接続を試す前の段階——タブを切り替えた時点——で、サイト自体にクラウド用のキーが設定されていなければ、あらかじめ利用不可と表示されます。
 
-### 8. プレビュー
+<a id="ai-image-generation-ja"></a>
+
+### 8. AI画像生成・編集（任意）
+
+上記の機能（AIコピー、フォーカルポイント、スタイル）は、いずれもAIが写真を「理解」して文章や一覧からの選択で答えるものであり、写真の見た目そのものを変えることはありません。別枠の**「AI画像生成・編集（Google Gemini）」**カードは、Google Gemini APIを通じて実際に新しい画像のピクセルを生成できます：
+
+- **新しい画像を生成**：「新しい画像を生成」の下の入力欄に説明文を入力し、**「生成してスライドに追加」**を押します。結果はストーリーに新しいスライドとして追加され、他の写真と同様にキャプションやスタイルを設定できます。
+- **既存の写真を編集**：「画像ごとのコピー一覧」内の各写真のカードで、**「AIで画像を編集」**の横の入力欄に指示文（例：「背景を消してください」「夕暮れのような雰囲気にしてください」）を入力し、ボタンを押します。結果はそのスライドの写真を置き換えますが、元の画像は保持され、そのカードに**「元に戻す」**ボタンが表示されるので、いつでも元に戻せます。
+
+この機能は、サーバーに`GEMINI_API_KEY`が設定されていない限り、カード内にその理由が表示されたまま無効化されます。そのメッセージが表示された場合は、サイト運営者に確認してください。**上記のChrome端末内AIや無料のOllamaとは異なり、これはそのキーを持つ相手に課金される有料のAPI呼び出しです**——本アプリ側に無料枠は用意されておらず、Google側のGemini料金体系とそのアカウントの無料枠の範囲内で利用することになります。
+
+### 9. プレビュー
 
 右側のスマートフォン風プレビューで、実際の書き出しと同じフェード・ズーム・文字のタイミングを確認できます。再生ボタンとシークバーで、書き出し前にペース配分や文字の位置を確認しましょう。
 
-### 9. 動画の書き出し
+### 10. 動画の書き出し
 
 **「動画を書き出す」**を押すと、Frameflowがブラウザ内で全フレームを描画します——長さ・画質・端末の性能によって数秒から数分かかります。描画が終わると、すぐにダウンロードされるのではなく、実際に再生できるプレーヤー（再生／一時停止／シークバー／音量など通常の操作が可能）が画面に表示されるので、BGMも含めて実際に見て・聴いて確認してから、どうするか決められます：
 
@@ -356,7 +380,7 @@ BGMはMP4書き出し時のみ反映されます。新しいWebCodecs APIに対�
 
 バッチ全体ではなく1枚だけ欲しい場合は、「画像ごとのコピー一覧」の各カードにある**「この画像を書き出す」**ボタンから、その1枚だけを（その画像の設定——上書きしていればそのスタイル、していなければプロジェクトの既定値——で）ダウンロードできます。他のスライドを一緒に書き出す必要はありません。
 
-### 10. 言語の切り替え
+### 11. 言語の切り替え
 
 右上の**EN／日本語**の切り替えはいつでも使えます。作業中の内容を失うことなく、表示言語だけを即座に切り替えます。
 
@@ -365,5 +389,7 @@ BGMはMP4書き出し時のみ反映されます。新しいWebCodecs APIに対�
 - **プレビュー・書き出しに文字が出ない**：「画像ごとのコピー一覧」でその写真の**「文字を表示」**がオンになっているか確認してください。
 - **AIのボタンを押しても何も起きない**：先にAIカードのサムネイル一覧で写真を1枚以上選んでください。
 - **本番サイトで「ローカルOllamaが見つかりません」と出る**：公開HTTPSサイトからローカルOllamaを使おうとした場合の想定内の挙動です。Ollamaの設定に関わらず、ブラウザがセキュリティ上この接続をブロックします。公開サイトでは「Ollama Cloud」を使うか、ローカルOllamaを使いたい場合はこのアプリ自体をローカル起動してください（README.md参照）。
+- **「AI画像生成・編集」カードが利用不可と表示される**：サイトにGemini APIキーが設定されていません。これは本アプリの他のAI機能とは別の有料機能のため、設定されていないサイトがあるのは想定内です。サイト運営者に確認するか、自分で運用している場合はREADME.mdを参照してください。
+- **Geminiが「画像を生成できませんでした」と表示する**：完全な失敗ではなく、その指示内容（曖昧すぎる、または安全性の理由で拒否された等）が原因の可能性があります。表現を変えるか、より具体的にして試してください。
 - **サイトを開くとユーザー名とパスワードを求められる**：サイト運営者が追加したBasic認証です。ログイン情報は運営者に確認してください。
-- Ollamaのインストール・設定、Vercelへのデプロイ、環境変数については[README.md](README.md)を参照してください。
+- Ollama・Geminiのインストール・設定、Vercelへのデプロイ、環境変数については[README.md](README.md)を参照してください。

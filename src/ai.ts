@@ -50,11 +50,12 @@ export function parseAiCopy(raw: string, language: Language = 'ja'): AiCopy {
 }
 export function blobToBase64(blob: Blob): Promise<string> { return new Promise((resolve, reject) => { const reader = new FileReader(); reader.onload = () => resolve(String(reader.result).split(',')[1] ?? ''); reader.onerror = () => reject(reader.error); reader.readAsDataURL(blob) }) }
 function ollamaApiUrl(baseUrl: string, path: 'tags' | 'generate', provider: AiProviderId) { return provider === 'ollama-cloud' ? `/api/ollama?path=api/${path}&provider=cloud` : `${normalizeOllamaUrl(baseUrl)}/api/${path}` }
-// The `/api/ollama` proxy (see api/ollama.ts) returns a specific, actionable JSON error body when
-// misconfigured server-side - e.g. {"error":"OLLAMA_CLOUD_API_KEY is not configured."} - which is
-// far more useful to show than a bare status code. Falls back to raw text, then nothing, since a
-// local Ollama's own error responses aren't guaranteed to be JSON at all.
-async function readErrorDetail(response: Response): Promise<string> {
+// Both `/api/ollama` and `/api/gemini` (see api/*.ts) return a specific, actionable JSON error
+// body when misconfigured server-side - e.g. {"error":"OLLAMA_CLOUD_API_KEY is not configured."} -
+// which is far more useful to show than a bare status code. Falls back to raw text, then nothing,
+// since a local Ollama's own error responses aren't guaranteed to be JSON at all. Exported so
+// gemini.ts can share it instead of duplicating the same fallback chain.
+export async function readErrorDetail(response: Response): Promise<string> {
   try {
     const text = await response.text(); if (!text) return ''
     try { const parsed = JSON.parse(text) as { error?: string }; if (typeof parsed.error === 'string' && parsed.error) return parsed.error.slice(0, 160) } catch { /* not JSON - fall through to raw text */ }
