@@ -59,6 +59,8 @@ This README covers setup, deployment, and configuration. For a walkthrough of us
 - An AI-generated whole-post caption + hashtags (distinct from the per-image on-screen title/CTA), styled toward the selected platform's conventions, with a one-click copy-to-clipboard button for pasting into the platform's own post composer
 - A native "Share to app…" button after export (on browsers/devices that support the Web Share API with files, mainly mobile) to hand the exported video straight to the Instagram/TikTok/YouTube app's share sheet
 - MP4 (H.264) export at the resolution of the chosen format; automatically falls back to WebM on browsers without WebCodecs
+- "Export video" renders into an on-screen player with real playback controls (including the mixed-in BGM) instead of downloading immediately - watch it, and only then choose "Download video" (or "Share to app…")
+- Every built-in music mood (and whatever track is currently selected, uploaded or generated) has a small play/pause button to hear a short sample before committing to it
 
 ### Getting started
 
@@ -275,6 +277,8 @@ FrameflowはInstagram・TikTok・YouTubeへの直接投稿・アップロード�
 - 投稿全体で1つのキャプション＋ハッシュタグをAIで生成（画像内のタイトル・CTAとは別物）。選んだプラットフォーム向けのトーンに調整され、ワンクリックでクリップボードにコピーして各アプリの投稿欄に貼り付け可能
 - 書き出し後に表示される「アプリに共有…」ボタン（Web Share APIのファイル共有に対応したブラウザ・端末、主にスマートフォン向け）。書き出した動画をInstagram・TikTok・YouTubeアプリの共有画面へそのまま渡せます
 - 選んだ用途の解像度でMP4（H.264）書き出し。WebCodecs非対応ブラウザでは自動的にWebMへフォールバック
+- 「動画を書き出す」を押すと、すぐにダウンロードされるのではなく、実際に再生できるプレーヤー（合成したBGMも含む）が画面に表示されます。再生して確認したうえで「動画をダウンロード」（または「アプリに共有…」）を選べます
+- 内蔵の音楽ムード（および現在選択中の曲——アップロードしたものでも生成したものでも）には、決める前に短いサンプルを聴ける再生ボタンが付いています
 
 ### ローカル起動
 

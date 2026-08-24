@@ -107,6 +107,8 @@ Under **"Background music"**, either:
 - Click **"Add a music file"** to upload your own track (any audio format your browser can decode), or
 - Pick one of the 8 **built-in tracks** (Calm, Uplifting, Cinematic, Playful, Dramatic, Lofi, Energetic, Acoustic) - these are generated on the spot right in your browser (an original chord progression, not a sample of anything), so there's no file to find and no licensing question. If you want a real produced/licensed track instead, see [Where the background music comes from](#bgm-source-en) for a few places to find one and download it, then upload it the same way.
 
+Not sure which mood fits? Each one has a small **▶** button - tap it to hear an 8-second sample right there, without changing what's currently selected. Tap it again (it becomes **⏸**) to stop early. Once you've picked a track, the same play/pause button appears next to its filename so you can double-check what's actually selected at any time.
+
 Either way, the track is automatically trimmed to match the video's length if it's longer, or looped seamlessly if it's shorter, with a short fade-in at the very start and a fade-out at the very end so it never starts or stops abruptly. Use the volume slider to adjust how loud it plays, or **"Remove"** to drop it and pick again.
 
 Music is only included in the MP4 export — the older WebM fallback (used only by browsers without the newer WebCodecs API) stays video-only.
@@ -143,13 +145,15 @@ The phone-shaped preview on the right plays back your video with the fade/zoom/t
 
 ### 8. Export your video
 
-Click **"Export video"**. Frameflow renders every frame in the browser and downloads an MP4 (H.264) file named after the format you picked (for example `instagram-reel.mp4`). On browsers without the newer WebCodecs API, it automatically falls back to WebM instead — either way, no upload is involved; the file is generated and downloaded locally.
+Click **"Export video"**. Frameflow renders every frame in the browser - this can take a few seconds to a couple of minutes depending on length, quality, and your device. Rather than downloading straight away, the finished render opens in an on-screen player (with normal play/pause/scrubber/volume controls) so you can actually watch and listen to it - BGM included - before deciding what to do with it:
 
-Prefer stills over (or alongside) video? Click **"Export as images"** instead to download every slide as its own JPEG — useful for an Instagram carousel post or anywhere else you want images rather than a video. Each one uses that slide's own motion style (its override if it has one, otherwise the project default), color grade, decoration, and text, frozen at a clean, fully-opaque moment rather than mid-fade. They download one at a time, named `<format>-01.jpg`, `<format>-02.jpg`, and so on in slide order.
+- **Download video** saves the MP4 (H.264) file, named after the format you picked (for example `instagram-reel.mp4`). On browsers without the newer WebCodecs API, it's a WebM file instead - either way, no upload is involved; the file only exists in your browser until you download it.
+- **Share to app…** may appear next to it (this depends on your browser and device — it's mainly available on mobile browsers that support sharing files, like Safari on iOS or Chrome on Android). Tapping it opens your device's native share sheet with the exported video already attached, so you can pick Instagram, TikTok, YouTube, or any other installed app to post directly, instead of downloading it first. Frameflow itself never uploads or publishes anything — this just hands the file to an app you choose.
+- The **×** in the corner discards the render without saving it - useful if something looks off and you'd rather adjust a setting and export again.
+
+Prefer stills over (or alongside) video? Click **"Export as images"** instead to download every slide as its own JPEG — useful for an Instagram carousel post or anywhere else you want images rather than a video. Each one uses that slide's own motion style (its override if it has one, otherwise the project default), color grade, decoration, and text, frozen at a clean, fully-opaque moment rather than mid-fade. They download one at a time, named `<format>-01.jpg`, `<format>-02.jpg`, and so on in slide order - these download immediately rather than going through the review player above, since a still image is quick to check right in the downloads folder.
 
 Want just one photo rather than the whole batch? Each photo's card under "Copy for every image" has its own **"Export image"** button that downloads just that slide, at whatever style it's set to (its own override, or the project default) - no need to export everything else along with it.
-
-After a video export finishes, a **"Share to app…"** button may appear (this depends on your browser and device — it's mainly available on mobile browsers that support sharing files, like Safari on iOS or Chrome on Android). Tapping it opens your device's native share sheet with the exported video already attached, so you can pick Instagram, TikTok, YouTube, or any other installed app to post directly, instead of finding the file in your downloads first. Frameflow itself never uploads or publishes anything — this just hands the file to an app you choose.
 
 ### 9. Switching languages
 
@@ -266,6 +270,8 @@ Frameflowは、手持ちの写真から投稿先に合わせたショート動�
 - **「音楽ファイルを追加」**から、お好きな音楽ファイル（ブラウザが再生できる形式）をアップロードする
 - 内蔵の**8種類のムード**（カーム／アップリフティング／シネマティック／プレイフル／ドラマチック／ローファイ／エナジェティック／アコースティック）から選ぶ——これらはブラウザ内でその場で生成されるもの（何かのサンプルではなく、オリジナルのコード進行）なので、探すファイルもライセンスの心配もありません。本格的に作られた・許諾された音楽を使いたい場合は、[BGMの音源について](#bgm-source-ja)にいくつかの入手先を挙げていますので、そちらからダウンロードし、同じ方法でアップロードしてください。
 
+どのムードが合うか迷ったら、それぞれに付いている小さな**▶**ボタンをタップしてみてください。今選んでいるものを変えずに、その場で8秒間のサンプルを聴けます。もう一度タップ（**⏸**に変わります）すれば途中で止められます。実際に曲を選んだ後も、ファイル名の横に同じ再生ボタンが表示されるので、今何が選ばれているか随時確認できます。
+
 どちらの場合も、動画より長い場合は自動でトリミングし、短い場合はシームレスにループして、開始時に短いフェードイン、終了時に短いフェードアウトが入るため、急に始まったり止まったりしません。音量スライダーで大きさを調整でき、**「削除」**で解除して選び直せます。
 
 BGMはMP4書き出し時のみ反映されます。新しいWebCodecs APIに対応していない一部ブラウザで使われる旧WebM形式では、動画のみになります。
@@ -302,13 +308,15 @@ BGMはMP4書き出し時のみ反映されます。新しいWebCodecs APIに対�
 
 ### 8. 動画の書き出し
 
-**「動画を書き出す」**を押すと、Frameflowがブラウザ内で全フレームを描画し、選んだ用途に合わせた名前（例：`instagram-reel.mp4`）のMP4（H.264）ファイルをダウンロードします。新しいWebCodecs APIに対応していないブラウザでは自動的にWebMにフォールバックします。いずれの場合もアップロードは発生せず、その場で生成してダウンロードするだけです。
+**「動画を書き出す」**を押すと、Frameflowがブラウザ内で全フレームを描画します——長さ・画質・端末の性能によって数秒から数分かかります。描画が終わると、すぐにダウンロードされるのではなく、実際に再生できるプレーヤー（再生／一時停止／シークバー／音量など通常の操作が可能）が画面に表示されるので、BGMも含めて実際に見て・聴いて確認してから、どうするか決められます：
 
-動画ではなく（あるいは動画に加えて）静止画が欲しい場合は、代わりに**「画像として書き出す」**を押してください。各スライドをそれぞれ1枚のJPEGとしてダウンロードします。Instagramのカルーセル投稿など、動画ではなく画像が必要な場面に便利です。各スライドはそのスライド自身のスタイル（上書きしていればそのスタイル、していなければプロジェクトの既定値）の色調・装飾・文字を使い、フェードの途中ではなく完全に不透明でくっきりした状態で書き出されます。`用途名-01.jpg`、`用途名-02.jpg`…という名前でスライド順に1枚ずつダウンロードされます。
+- **「動画をダウンロード」**：選んだ用途に合わせた名前（例：`instagram-reel.mp4`）のMP4（H.264）ファイルを保存します。新しいWebCodecs APIに対応していないブラウザではWebMファイルになります。いずれの場合もアップロードは発生せず、ダウンロードするまでファイルはブラウザ内にしか存在しません。
+- その横に**「アプリに共有…」**が表示されることがあります（お使いのブラウザ・端末に依存し、主にファイル共有に対応したモバイルブラウザ——iOSのSafariやAndroidのChromeなど——で利用できます）。タップすると、書き出した動画が添付された状態で端末標準の共有画面が開くので、Instagram・TikTok・YouTubeなど、インストール済みのアプリを選んでそのまま投稿できます。先にダウンロードする必要はありません。Frameflow自体が何かをアップロード・公開することはなく、選んだアプリにファイルを渡すだけです。
+- 隅の**×**を押すと、保存せずにこの書き出しを閉じられます。見た感じが違う場合は、設定を調整してから書き出し直すのに便利です。
+
+動画ではなく（あるいは動画に加えて）静止画が欲しい場合は、代わりに**「画像として書き出す」**を押してください。各スライドをそれぞれ1枚のJPEGとしてダウンロードします。Instagramのカルーセル投稿など、動画ではなく画像が必要な場面に便利です。各スライドはそのスライド自身のスタイル（上書きしていればそのスタイル、していなければプロジェクトの既定値）の色調・装飾・文字を使い、フェードの途中ではなく完全に不透明でくっきりした状態で書き出されます。`用途名-01.jpg`、`用途名-02.jpg`…という名前でスライド順に1枚ずつダウンロードされます——静止画はダウンロードフォルダですぐに確認できるため、上記のレビュー用プレーヤーを介さず直接ダウンロードされます。
 
 バッチ全体ではなく1枚だけ欲しい場合は、「画像ごとのコピー一覧」の各カードにある**「この画像を書き出す」**ボタンから、その1枚だけを（その画像の設定——上書きしていればそのスタイル、していなければプロジェクトの既定値——で）ダウンロードできます。他のスライドを一緒に書き出す必要はありません。
-
-動画の書き出しが終わると、**「アプリに共有…」**ボタンが表示されることがあります（お使いのブラウザ・端末に依存し、主にファイル共有に対応したモバイルブラウザ——iOSのSafariやAndroidのChromeなど——で利用できます）。タップすると、書き出した動画が添付された状態で端末標準の共有画面が開くので、Instagram・TikTok・YouTubeなど、インストール済みのアプリを選んでそのまま投稿できます。ダウンロードフォルダから探す手間が省けます。Frameflow自体が何かをアップロード・公開することはなく、選んだアプリにファイルを渡すだけです。
 
 ### 9. 言語の切り替え
 
