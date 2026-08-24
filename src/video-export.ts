@@ -47,11 +47,15 @@ export async function renderMp4(options: { canvas: HTMLCanvasElement; fps: numbe
   const ctx = prepareCanvas(options.canvas)
   const target = new BufferTarget()
   const output = new Output({ format: new Mp4OutputFormat(), target })
-  // Constant bitrate: with the default variable mode, the encoder is free to spend fewer bits than
-  // the target on easy-to-compress frames (flat colors, blur). That's fine on its own, but it means
-  // the configured bitrate is only a ceiling, not a guarantee - a busy/noisy photo later in the same
-  // export could end up under-served relative to what "high quality" promises. CBR always spends the
-  // full budget, so the quality floor is consistent across every frame regardless of content.
+  // Requesting constant bitrate signals intent to the encoder: with the default variable mode, it's
+  // explicitly free to spend fewer bits than the target on easy-to-compress frames (flat colors,
+  // blur), so the configured bitrate is only a ceiling, not a guarantee. 'constant' pushes toward
+  // spending the full budget - note that in practice, how strictly this is honored still depends on
+  // the platform's actual encoder (e.g. a hardware encoder may still scale down for very simple
+  // content); measured on macOS, a static scene came in well under the target while a busy one used
+  // most of it. That's a reasonable outcome either way (quality tracks complexity), but it means the
+  // configured bitrate should be read as a ceiling this encoder is now allowed to fully use, not a
+  // hard, always-hit floor across every platform.
   const videoSource = new CanvasSource(options.canvas, { codec: options.codec, quality: new Quality({ bitrate: options.bitrate, bitrateMode: 'constant' }) })
   output.addVideoTrack(videoSource, { frameRate: options.fps })
   // The whole (already trimmed/looped/faded - see audio.ts) buffer is handed to the encoder in one

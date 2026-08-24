@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { buildCaptionPrompt, buildCopyPrompt, getLocalOllamaCandidates, isHeicFile, normalizeOllamaUrl, parseAiCaption, parseAiCopy, selectVisionModel, supportsVision } from './ai'
+import { buildCaptionPrompt, buildCopyPrompt, buildFocalPointPrompt, getLocalOllamaCandidates, isHeicFile, normalizeOllamaUrl, parseAiCaption, parseAiCopy, parseAiFocalPoint, selectVisionModel, supportsVision } from './ai'
 
 describe('HEIC support', () => {
   it('recognizes HEIC and HEIF by mime type or extension', () => {
@@ -95,5 +95,41 @@ describe('post caption + hashtags', () => {
     const youtube = buildCaptionPrompt({ platform: 'youtube', language: 'en', customDirection: 'Mention it was shot on an iPhone' })
     expect(youtube).toContain('youtube')
     expect(youtube).toContain('Mention it was shot on an iPhone')
+  })
+})
+
+describe('AI focal point detection', () => {
+  it('maps a grid cell response to its approximate normalized position', () => {
+    expect(parseAiFocalPoint('{"cell":"top-left"}')).toEqual({ x: .2, y: .2 })
+    expect(parseAiFocalPoint('{"cell":"bottom-right"}')).toEqual({ x: .8, y: .8 })
+    expect(parseAiFocalPoint('{"cell":"center"}')).toEqual({ x: .5, y: .5 })
+  })
+
+  it('is tolerant of case and surrounding whitespace in the cell label', () => {
+    expect(parseAiFocalPoint('{"cell":" Top-Left "}')).toEqual({ x: .2, y: .2 })
+  })
+
+  it('parses JSON even when the model wraps it in a markdown fence', () => {
+    expect(parseAiFocalPoint('```json\n{"cell":"middle-right"}\n```')).toEqual({ x: .8, y: .5 })
+  })
+
+  it('falls back to raw x/y coordinates if a model ignores the grid instruction', () => {
+    expect(parseAiFocalPoint('{"x":0.3,"y":0.65}')).toEqual({ x: 0.3, y: 0.65 })
+    expect(parseAiFocalPoint('{"x":1.4,"y":-0.2}')).toEqual({ x: 1, y: 0 })
+  })
+
+  it('rejects a response with neither a valid cell nor usable numeric coordinates', () => {
+    expect(() => parseAiFocalPoint('{"cell":"somewhere-vague"}')).toThrow('位置情報')
+    expect(() => parseAiFocalPoint('{"caption":"hello"}')).toThrow('位置情報')
+  })
+
+  it('builds a prompt that asks for a grid cell, not marketing copy', () => {
+    const ja = buildFocalPointPrompt('ja')
+    expect(ja).toContain('被写体')
+    expect(ja).toMatch(/\{"cell"/)
+    const en = buildFocalPointPrompt('en')
+    expect(en).toContain('subject')
+    expect(en).toContain('grid')
+    expect(en).not.toMatch(/[ぁ-んァ-ヶ一-龠々ー]/)
   })
 })

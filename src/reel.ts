@@ -1,7 +1,7 @@
 export type FrameState = { index: number; progress: number }
 export type VideoPatternId = 'cinematic' | 'dynamic' | 'minimal' | 'album' | 'social' | 'noir' | 'neon' | 'polaroid' | 'vhs' | 'glow' | 'comic' | 'editorial'
-export type VideoFormatId = 'reel' | 'story' | 'feed-portrait' | 'square' | 'shorts' | 'tiktok' | 'youtube-video'
-export type VideoQualityId = 'standard' | 'high'
+export type VideoFormatId = 'reel' | 'story' | 'feed-portrait' | 'square' | 'feed-landscape' | 'shorts' | 'tiktok' | 'tiktok-square' | 'youtube-video' | 'youtube-square'
+export type VideoQualityId = 'standard' | 'high' | 'ultra'
 export type Platform = 'instagram' | 'tiktok' | 'youtube'
 export const PLATFORMS: readonly Platform[] = ['instagram', 'tiktok', 'youtube']
 
@@ -42,14 +42,18 @@ export const VIDEO_FORMATS: readonly VideoFormat[] = [
   { id: 'story', platform: 'instagram', name: { en: 'Instagram Story', ja: 'Instagramストーリー' }, description: { en: '9:16 with top and bottom UI safe areas', ja: '9:16・上下UI安全領域' }, width: 1080, height: 1920, safeTop: .14, safeBottom: .2, fileName: 'instagram-story', recommendedMaxSeconds: 60 },
   { id: 'feed-portrait', platform: 'instagram', name: { en: 'Portrait feed', ja: 'フィード縦型' }, description: { en: '4:5 Instagram post', ja: '4:5・Instagram投稿' }, width: 1080, height: 1350, safeTop: .06, safeBottom: .1, fileName: 'feed-portrait', recommendedMaxSeconds: 60 },
   { id: 'square', platform: 'instagram', name: { en: 'Square feed', ja: 'フィード正方形' }, description: { en: '1:1 social post', ja: '1:1・汎用SNS投稿' }, width: 1080, height: 1080, safeTop: .06, safeBottom: .1, fileName: 'feed-square', recommendedMaxSeconds: 60 },
+  { id: 'feed-landscape', platform: 'instagram', name: { en: 'Landscape feed', ja: 'フィード横型' }, description: { en: '1.91:1 wide Instagram post', ja: '1.91:1・横長のInstagram投稿' }, width: 1080, height: 565, safeTop: .06, safeBottom: .1, fileName: 'feed-landscape', recommendedMaxSeconds: 60 },
   { id: 'tiktok', platform: 'tiktok', name: { en: 'TikTok', ja: 'TikTok' }, description: { en: '9:16 with TikTok UI safe areas', ja: '9:16・TikTokのUIを考慮' }, width: 1080, height: 1920, safeTop: .08, safeBottom: .22, fileName: 'tiktok', recommendedMaxSeconds: 60 },
+  { id: 'tiktok-square', platform: 'tiktok', name: { en: 'TikTok Square', ja: 'TikTokスクエア' }, description: { en: '1:1, e.g. for repurposing feed content', ja: '1:1・フィード用素材の転用などに' }, width: 1080, height: 1080, safeTop: .06, safeBottom: .1, fileName: 'tiktok-square', recommendedMaxSeconds: 60 },
   { id: 'shorts', platform: 'youtube', name: { en: 'YouTube Shorts', ja: 'YouTube Shorts' }, description: { en: '9:16 with right-side UI allowance', ja: '9:16・右側UIを考慮' }, width: 1080, height: 1920, safeTop: .08, safeBottom: .16, fileName: 'youtube-shorts', recommendedMaxSeconds: 60 },
   { id: 'youtube-video', platform: 'youtube', name: { en: 'YouTube video', ja: 'YouTube動画' }, description: { en: '16:9 standard landscape upload', ja: '16:9・横型の通常動画' }, width: 1920, height: 1080, safeTop: .05, safeBottom: .08, fileName: 'youtube-video', recommendedMaxSeconds: 600 },
+  { id: 'youtube-square', platform: 'youtube', name: { en: 'YouTube Square', ja: 'YouTubeスクエア' }, description: { en: '1:1 upload, plays large on mobile feeds', ja: '1:1投稿・モバイルフィードで大きく表示' }, width: 1080, height: 1080, safeTop: .05, safeBottom: .08, fileName: 'youtube-square', recommendedMaxSeconds: 600 },
 ] as const
 
 export const VIDEO_QUALITIES: readonly VideoQuality[] = [
   { id: 'standard', name: { en: 'Standard', ja: '標準' }, fps: 30, bitsPerSecond: 16_000_000, scale: 1, description: { en: '1080p · balanced file size', ja: '1080p・標準ファイルサイズ' } },
   { id: 'high', name: { en: 'High quality', ja: '高画質' }, fps: 60, bitsPerSecond: 42_000_000, scale: 1, description: { en: '1080p · 60fps · high bitrate', ja: '1080p・60fps・高ビットレート' } },
+  { id: 'ultra', name: { en: 'Ultra HD', ja: '最高画質' }, fps: 60, bitsPerSecond: 80_000_000, scale: 2, description: { en: '4K (2160p) · 60fps · maximum bitrate', ja: '4K（2160p）・60fps・最大ビットレート' } },
 ] as const
 
 const clamp = (value: number, min = 0, max = 1) => Math.max(min, Math.min(value, max))

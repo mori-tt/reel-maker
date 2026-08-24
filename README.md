@@ -21,12 +21,14 @@ This README covers setup, deployment, and configuration. For a walkthrough of us
 - Reorder / remove images
 - Per-image title, CTA, visibility, and text position
 - Per-image auto-enhance: an optional, one-tap exposure/contrast correction (histogram-based, entirely local)
-- Per-image focal point: tap where the subject is so cropping to the target aspect ratio keeps it in frame
-- Background music: upload your own track; it's trimmed or looped to the video's length with a fade-out at the end (MP4 export only)
+- Per-image focal point: tap where the subject is so cropping to the target aspect ratio keeps it in frame, or let AI locate the main subject for you (see [Chrome/Ollama AI beyond copywriting](#chromeollama-ai-beyond-copywriting))
+- Per-image style override: give any single photo its own motion/color pattern instead of the project-wide default - useful when one photo in the batch needs to stand out, and it carries through to that photo's still-image export too
+- A dedicated "Export image" button per photo, for grabbing just one slide (at its own style) without exporting the whole batch
+- Background music: upload your own track, or pick one of 4 built-in generated moods (Calm, Uplifting, Cinematic, Playful) - either way it's trimmed/looped to the video's length with a fade-in at the start and a fade-out at the end (MP4 export only). The built-in tracks are synthesized live from a chord progression right in your browser (see [Where the background music comes from](#where-the-background-music-comes-from)) - not sampled from anywhere, so there's no licensing to think about
 - Export every slide as a set of still images (e.g. an Instagram carousel post) in addition to video, using the same color grade/decoration/text as the chosen motion style
-- AI copy suggestions via Chrome on-device AI, Local Ollama, or Ollama Cloud
+- AI copy suggestions via Chrome on-device AI, Local Ollama, or Ollama Cloud, plus a non-copywriting use of the same vision models for focal-point detection (see [Chrome/Ollama AI beyond copywriting](#chromeollama-ai-beyond-copywriting))
 - English / Japanese UI (English by default)
-- Export quality presets: Standard (30fps) and High quality (60fps, 42 Mbps) — both render at 1080px wide, with height set by the chosen format
+- Export quality presets: Standard (30fps, 16 Mbps), High quality (60fps, 42 Mbps), and Ultra HD (60fps, 80 Mbps, 2x resolution - true 4K on formats based on a 1080p canvas) — Standard/High render at the format's base resolution (e.g. 1080x1920 for a 9:16 format); Ultra HD doubles both dimensions
 - 12 motion styles, each with its own color grade, signature decoration, and text treatment (alignment/case/shadow) — not just a faster/slower pan-zoom:
   - **Cinematic** — slow zoom + letterbox bars + muted grade
   - **Dynamic** — fast zoom/slide + a white flash on every cut + punchy grade
@@ -44,9 +46,9 @@ This README covers setup, deployment, and configuration. For a walkthrough of us
 - Duration per image automatically adjusts with photo count — the minimum rises and the maximum comes down as you add more, so a large batch neither flickers by nor runs unexpectedly long
 - Constant-bitrate encoding, so export quality never dips below the selected preset regardless of how visually complex the photos are
 - Output formats grouped by platform, each with format-aware safe areas so text/decoration stays clear of that platform's own UI:
-  - **Instagram** — Reel, Story, portrait feed (4:5), square feed (1:1)
-  - **TikTok** — 9:16, with extra bottom clearance for TikTok's caption/username/sound UI
-  - **YouTube** — Shorts (9:16) and standard long-form video (16:9 landscape)
+  - **Instagram** — Reel, Story, portrait feed (4:5), square feed (1:1), landscape feed (1.91:1)
+  - **TikTok** — 9:16 (with extra bottom clearance for TikTok's caption/username/sound UI), or square (1:1)
+  - **YouTube** — Shorts (9:16), standard long-form video (16:9 landscape), or square (1:1)
 - A soft duration hint (not a hard limit) when your video runs longer than what tends to work well for the selected format/platform — platform limits change over time, so this is guidance, not an enforced cutoff
 - An AI-generated whole-post caption + hashtags (distinct from the per-image on-screen title/CTA), styled toward the selected platform's conventions, with a one-click copy-to-clipboard button for pasting into the platform's own post composer
 - A native "Share to app…" button after export (on browsers/devices that support the Web Share API with files, mainly mobile) to hand the exported video straight to the Instagram/TikTok/YouTube app's share sheet
@@ -68,6 +70,29 @@ A browser page can never start the Ollama process itself — that's a deliberate
 Export prefers WebCodecs (`VideoEncoder`) through [mediabunny](https://mediabunny.dev/). Each frame is drawn to a canvas and encoded with an explicit timestamp, independent of real time, so a slow device just makes the export take longer — it can never drop or duplicate a frame. (The older `canvas.captureStream` + `MediaRecorder` approach is a real-time capture: if a single frame's draw call takes too long, that frame is gone.) As a side effect the container is also the far more portable MP4 (H.264), which plays back correctly on Safari 16.4+ too.
 
 On browsers without WebCodecs support (older Firefox, for example), export automatically falls back to the `canvas.captureStream` + `MediaRecorder` WebM path.
+
+<a id="where-the-background-music-comes-from"></a>
+
+### Where the background music comes from
+
+Frameflow doesn't ship any bundled/downloaded audio files, and doesn't scrape or link into third-party "free music" sites automatically - verifying the actual copyright status and license terms (attribution requirements, commercial-use restrictions, etc.) of content pulled from an arbitrary external site isn't something this app can do reliably, and getting it wrong would put that risk on whoever posts the video. Instead, the 4 built-in moods (`src/generated-music.ts`) are synthesized entirely client-side from oscillators (a chord progression per mood, run through a `OfflineAudioContext`, encoded to WAV) - original by construction, so there's no license to check.
+
+For real produced/licensed music instead, download a track yourself from a source whose terms you're comfortable with and use the existing **"Add a music file"** upload button - a few well-known starting points (not affiliated with this project; check each one's current terms before use):
+
+- [YouTube Audio Library](https://studio.youtube.com/) (inside YouTube Studio's left sidebar)
+- [Pixabay Music](https://pixabay.com/music/)
+- [Free Music Archive](https://freemusicarchive.org/)
+- [Incompetech](https://incompetech.com/) (Kevin MacLeod)
+
+<a id="chromeollama-ai-beyond-copywriting"></a>
+
+### Chrome/Ollama AI beyond copywriting
+
+The same on-device/Ollama vision models used for per-image title/CTA and the whole-post caption (see below) are also used for one non-copywriting task: **focal-point detection**. Instead of asking the model to write text, `buildFocalPointPrompt` (`src/ai.ts`) asks it to place the photo's main subject on a 3x3 grid (top-left, top-center, ..., bottom-right), and the app sets the manual focal point to that cell automatically.
+
+A grid was chosen deliberately over asking for continuous `x`/`y` coordinates directly: testing against a small on-device model (`gemma3:4b`) showed it reliably collapsed free-form coordinates to `{"x":0.5,"y":0.5}` (dead center) regardless of where the subject actually was, but reasoned much more sensibly about which third of the frame something was in. This is a real, current limitation of small vision-language models at precise spatial localization, not a bug in the prompt/parsing - a stronger model (e.g. `qwen2.5vl`, which is specifically known for better visual grounding) may do noticeably better with the exact same code path. Either way, the UI treats every detection as a starting point to review, not a final answer - the same dot you'd place manually is shown for adjustment afterward.
+
+There's no equivalent "beyond copywriting" use for actual pixel generation/editing: Chrome's Prompt API and Ollama's vision models can *understand* an image and respond with text (a title, a caption, a grid cell), but none of them can output new pixels - that would be a fundamentally different kind of model (image generation/inpainting), which isn't what's available on-device today.
 
 <a id="ai-copy-suggestions"></a>
 
@@ -206,12 +231,14 @@ FrameflowはInstagram・TikTok・YouTubeへの直接投稿・アップロード�
 - 画像の並べ替え・削除
 - 画像ごとのタイトル・CTA・表示有無・差し込み位置の編集
 - 画像ごとの自動補正：ワンタップの露出・コントラスト補正（ヒストグラム解析、完全にローカル処理）
-- 画像ごとのフォーカルポイント：被写体の位置をタップすると、用途に合わせてクロップしても被写体が枠内に残る
-- BGM（背景音楽）：お好きな音楽ファイルをアップロード可能。動画の長さに合わせて自動でトリミングまたはループし、最後はフェードアウト（MP4書き出し時のみ）
+- 画像ごとのフォーカルポイント：被写体の位置をタップすると、用途に合わせてクロップしても被写体が枠内に残る。またAIに主な被写体の位置を検出してもらうことも可能（詳しくは[Chrome/OllamaのAI活用：コピー生成以外の使い方](#chromeollamaのai活用コピー生成以外の使い方)）
+- 画像ごとのスタイル上書き：プロジェクト全体の既定パターンとは別に、1枚だけ違う動き・色調を指定可能。その画像だけ目立たせたいときに便利で、その画像の静止画書き出しにも反映されます
+- 画像ごとの「この画像を書き出す」ボタン：バッチ全体を書き出さずに、その画像（＋そのスタイル）だけを1枚取得できます
+- BGM（背景音楽）：お好きな音楽ファイルをアップロードするか、内蔵の生成ムード（カーム／アップリフティング／シネマティック／プレイフルの4種類）から選べます。いずれも動画の長さに合わせて自動でトリミングまたはループし、開始時にフェードイン、終了時にフェードアウトします（MP4書き出し時のみ）。内蔵ムードはブラウザ内でその場で音を合成したものです（詳しくは[BGMの音源について](#bgmの音源について)）
 - 動画に加えて、各画像を静止画セット（Instagramカルーセル投稿など）としても書き出し可能。選んだ動画パターンと同じ色調・装飾・文字を反映
-- Chrome端末内AI、ローカルOllama、Ollama Cloudによる画像別タイトル・CTA提案
+- Chrome端末内AI、ローカルOllama、Ollama Cloudによる画像別タイトル・CTA提案。同じ画像認識モデルを使ったコピー生成以外の用途（フォーカルポイント検出）もあります
 - 英語／日本語UI切替（初回は英語）
-- 書き出しプリセット：標準（30fps）／高画質（60fps・42Mbps）。幅はいずれも1080pxで、高さは選んだ用途によって変わります
+- 書き出しプリセット：標準（30fps・16Mbps）／高画質（60fps・42Mbps）／最高画質（60fps・80Mbps・2倍解像度、1080pベースの用途では実質4K）。標準・高画質は用途の基本解像度（例：9:16用途なら1080×1920）で書き出し、最高画質は縦横ともに2倍になります
 - 12種類の動画演出。単にパン・ズームの速さを変えるだけでなく、色調・装飾・文字の見せ方（配置・大文字化・影）まで演出ごとに変えて見た目を差別化：
   - **シネマティック** — 遅いズーム＋レターボックス＋落ち着いた色調
   - **ダイナミック** — 速いズーム／スライド＋カットごとの白フラッシュ＋鮮やかな色調
@@ -229,9 +256,9 @@ FrameflowはInstagram・TikTok・YouTubeへの直接投稿・アップロード�
 - 写真の枚数に応じて1枚あたりの表示時間の下限・上限が自動的に調整され、枚数が多くても切り替えが速すぎたり、逆に合計が長くなりすぎたりしない
 - 固定ビットレートでエンコードするため、写真の内容が複雑でも選んだプリセットの画質を下回らない
 - 出力用途はプラットフォームごとにグループ化。それぞれのUIと干渉しないよう安全領域を最適化：
-  - **Instagram** — リール、ストーリー、フィード縦型（4:5）、フィード正方形（1:1）
-  - **TikTok** — 9:16。TikTokのキャプション／ユーザー名／サウンド表示分、下部の余白を多めに確保
-  - **YouTube** — Shorts（9:16）と通常動画（16:9・横型）
+  - **Instagram** — リール、ストーリー、フィード縦型（4:5）、フィード正方形（1:1）、フィード横型（1.91:1）
+  - **TikTok** — 9:16（TikTokのキャプション／ユーザー名／サウンド表示分、下部の余白を多めに確保）、またはスクエア（1:1）
+  - **YouTube** — Shorts（9:16）、通常動画（16:9・横型）、またはスクエア（1:1）
 - この用途では何秒くらいが扱いやすいかのソフトな目安表示（厳密な上限ではありません）。各プラットフォームの制限は変わることがあるため、あくまで目安です
 - 投稿全体で1つのキャプション＋ハッシュタグをAIで生成（画像内のタイトル・CTAとは別物）。選んだプラットフォーム向けのトーンに調整され、ワンクリックでクリップボードにコピーして各アプリの投稿欄に貼り付け可能
 - 書き出し後に表示される「アプリに共有…」ボタン（Web Share APIのファイル共有に対応したブラウザ・端末、主にスマートフォン向け）。書き出した動画をInstagram・TikTok・YouTubeアプリの共有画面へそのまま渡せます
@@ -253,6 +280,29 @@ npm run dev
 書き出しは [mediabunny](https://mediabunny.dev/) 経由のWebCodecs（`VideoEncoder`）を優先して使います。画像1枚ごとにcanvasへ描画し、実時間とは無関係に明示的なタイムスタンプでエンコードするため、端末が重くてもフレームが欠落・重複しません（描画に時間がかかるほど書き出しが遅くなるだけです）。従来の`canvas.captureStream` + `MediaRecorder`によるリアルタイム録画は、1フレームの描画が時間内に間に合わないとその場でコマ落ちします。副次的に、コンテナも汎用性の高いMP4（H.264）になり、Safari 16.4以降でも正しく再生できます。
 
 WebCodecsが使えないブラウザ（古いFirefoxなど）では、従来どおり`canvas.captureStream` + `MediaRecorder`によるWebM書き出しに自動フォールバックします。
+
+<a id="bgmの音源について"></a>
+
+### BGMの音源について
+
+Frameflowは音声ファイルを同梱・ダウンロードしたり、いわゆる「無料音楽」サイトへ自動的にリンク・スクレイピングしたりはしません。外部サイトから取得したコンテンツの実際の著作権状況やライセンス条件（クレジット表記の要否、商用利用の可否など）を本アプリ側で確実に検証する方法がなく、そこを誤ると動画を投稿する方にそのリスクが及んでしまうためです。代わりに、内蔵の4種類のムード（`src/generated-music.ts`）はブラウザ内で発振器から完全に合成しています（ムードごとのコード進行を`OfflineAudioContext`で処理し、WAVにエンコード）。構造上オリジナルなので、確認すべきライセンスがありません。
+
+本格的に作られた・許諾された音楽を使いたい場合は、ご自身が納得できる利用条件のサイトから音源をダウンロードし、既存の**「音楽ファイルを追加」**ボタンからアップロードしてください。よく知られた候補をいくつか挙げます（本プロジェクトとは提携関係はありません。利用前に各サイトの最新の利用条件をご確認ください）：
+
+- [YouTube Audio Library](https://studio.youtube.com/)（YouTube Studioの左サイドバー内）
+- [Pixabay Music](https://pixabay.com/music/)
+- [Free Music Archive](https://freemusicarchive.org/)
+- [Incompetech](https://incompetech.com/)（Kevin MacLeod）
+
+<a id="chromeollamaのai活用コピー生成以外の使い方"></a>
+
+### Chrome/OllamaのAI活用：コピー生成以外の使い方
+
+画像別タイトル・CTAや投稿キャプション（後述）に使っているのと同じChrome端末内AI／Ollamaの画像認識モデルは、コピー生成以外の用途にも1つ使われています：**フォーカルポイント検出**です。モデルに文章を書かせる代わりに、`buildFocalPointPrompt`（`src/ai.ts`）は写真の主な被写体が3×3グリッド（top-left, top-center, ... , bottom-right）のどこにあるかを答えさせ、そのマスに合わせてフォーカルポイントを自動設定します。
+
+連続的な`x`/`y`座標を直接聞く方式ではなく、あえてグリッド方式を採用しています。小型の端末内モデル（`gemma3:4b`）で検証したところ、自由形式の座標を聞くと被写体の実際の位置に関わらず`{"x":0.5,"y":0.5}`（中央固定）に収束してしまう一方、画面のどの三分割エリアにあるかという問いにはずっと妥当に答えられることが分かりました。これは小型の画像言語モデルが持つ、精密な空間位置特定における現時点での実際の限界であり、プロンプトやパース処理側の不具合ではありません——より高性能なモデル（例えば視覚的グラウンディングに強いとされる`qwen2.5vl`など）を使えば、同じコードのまま明らかに良い結果が得られる可能性があります。いずれにしても、UI上はどの検出結果も「最終回答」ではなく「確認・調整の出発点」として扱っており、手動で置くのと同じドットが後から調整できる形で表示されます。
+
+画像そのものの生成・編集については、「コピー生成以外」に相当する使い道は今のところありません。Chrome Prompt APIやOllamaの画像認識モデルは画像を理解して文章（タイトル・キャプション・グリッドのマスなど）で答えることはできますが、新しいピクセルを出力することはできません。それには画像生成・インペインティングという根本的に別種のモデルが必要で、現時点で端末内で使えるものではないためです。
 
 <a id="aiコピー提案"></a>
 

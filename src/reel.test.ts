@@ -45,12 +45,12 @@ describe('reel timeline', () => {
   })
 
   it('provides social formats and quality presets', () => {
-    expect(VIDEO_FORMATS.map(format => format.id)).toEqual(['reel', 'story', 'feed-portrait', 'square', 'tiktok', 'shorts', 'youtube-video'])
+    expect(VIDEO_FORMATS.map(format => format.id)).toEqual(['reel', 'story', 'feed-portrait', 'square', 'feed-landscape', 'tiktok', 'tiktok-square', 'shorts', 'youtube-video', 'youtube-square'])
     expect(getVideoFormat('square')).toMatchObject({ width: 1080, height: 1080 })
     expect(getVideoFormat('story').safeTop).toBeGreaterThan(getVideoFormat('reel').safeTop)
     expect(isVideoFormatId('shorts')).toBe(true)
     expect(isVideoFormatId('landscape')).toBe(false)
-    expect(VIDEO_QUALITIES.map(quality => quality.id)).toEqual(['standard', 'high'])
+    expect(VIDEO_QUALITIES.map(quality => quality.id)).toEqual(['standard', 'high', 'ultra'])
     expect(getVideoQuality('high').fps).toBe(60)
     expect(getVideoQuality('high').bitsPerSecond).toBeGreaterThanOrEqual(40_000_000)
     expect(getVideoQuality('high').bitsPerSecond).toBeGreaterThan(getVideoQuality('standard').bitsPerSecond)
@@ -60,17 +60,30 @@ describe('reel timeline', () => {
     expect(getVideoQuality('high').name.ja).toBe('高画質')
   })
 
-  it('covers Instagram, TikTok, and YouTube, each with a distinct platform tag', () => {
-    expect(new Set(VIDEO_FORMATS.map(format => format.platform))).toEqual(new Set(['instagram', 'tiktok', 'youtube']))
-    expect(getVideoFormat('tiktok').platform).toBe('tiktok')
-    expect(VIDEO_FORMATS.filter(format => format.platform === 'youtube').map(format => format.id)).toEqual(['shorts', 'youtube-video'])
-    expect(VIDEO_FORMATS.filter(format => format.platform === 'instagram').length).toBe(4)
+  it('offers a 4K "Ultra HD" tier that actually renders at a higher resolution, not just a bitrate bump', () => {
+    const ultra = getVideoQuality('ultra')
+    expect(ultra.scale).toBeGreaterThan(getVideoQuality('high').scale)
+    expect(ultra.scale).toBeGreaterThan(getVideoQuality('standard').scale)
+    expect(ultra.bitsPerSecond).toBeGreaterThan(getVideoQuality('high').bitsPerSecond)
+    expect(isVideoQualityId('ultra')).toBe(true)
   })
 
-  it('gives the one landscape format (regular YouTube video) a 16:9 aspect ratio, everything else 9:16 or narrower', () => {
-    const landscape = getVideoFormat('youtube-video')
-    expect(landscape.width / landscape.height).toBeCloseTo(16 / 9, 2)
-    for (const format of VIDEO_FORMATS) if (format.id !== 'youtube-video') expect(format.width).toBeLessThanOrEqual(format.height)
+  it('covers Instagram, TikTok, and YouTube, each with multiple format variations under a distinct platform tag', () => {
+    expect(new Set(VIDEO_FORMATS.map(format => format.platform))).toEqual(new Set(['instagram', 'tiktok', 'youtube']))
+    expect(getVideoFormat('tiktok').platform).toBe('tiktok')
+    expect(VIDEO_FORMATS.filter(format => format.platform === 'youtube').map(format => format.id)).toEqual(['shorts', 'youtube-video', 'youtube-square'])
+    expect(VIDEO_FORMATS.filter(format => format.platform === 'instagram').length).toBe(5)
+    expect(VIDEO_FORMATS.filter(format => format.platform === 'tiktok').length).toBe(2)
+    // Every format id is unique and every platform has more than one option to choose from.
+    expect(new Set(VIDEO_FORMATS.map(format => format.id)).size).toBe(VIDEO_FORMATS.length)
+    for (const platform of ['instagram', 'tiktok', 'youtube'] as const) expect(VIDEO_FORMATS.filter(format => format.platform === platform).length).toBeGreaterThan(1)
+  })
+
+  it('gives the two landscape formats a wide aspect ratio, everything else 9:16 or narrower', () => {
+    const landscapeIds = ['youtube-video', 'feed-landscape']
+    expect(getVideoFormat('youtube-video').width / getVideoFormat('youtube-video').height).toBeCloseTo(16 / 9, 2)
+    expect(getVideoFormat('feed-landscape').width / getVideoFormat('feed-landscape').height).toBeCloseTo(1.91, 1)
+    for (const format of VIDEO_FORMATS) if (!landscapeIds.includes(format.id)) expect(format.width).toBeLessThanOrEqual(format.height)
   })
 
   it('gives every format a positive, sane recommended duration hint without hard-enforcing it', () => {

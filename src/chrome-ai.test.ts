@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import { chromeAiAvailabilityMessage, generateChromeAiCaption, generateChromeAiCopy, getChromeAiAvailability, getChromeLanguageModel, prepareChromeAi } from './chrome-ai'
+import { chromeAiAvailabilityMessage, generateChromeAiCaption, generateChromeAiCopy, generateChromeAiFocalPoint, getChromeAiAvailability, getChromeLanguageModel, prepareChromeAi } from './chrome-ai'
 
 describe('Chrome built-in AI', () => {
   it('reports a distinct no-api status when LanguageModel is absent (e.g. Safari/Firefox)', async () => {
@@ -64,5 +64,15 @@ describe('Chrome built-in AI', () => {
   it('surfaces the no-api message when generating a caption without the API', async () => {
     const image = new Blob(['image'], { type: 'image/jpeg' })
     await expect(generateChromeAiCaption({ image, platform: 'tiktok', language: 'ja' })).rejects.toThrow('Ollama')
+  })
+
+  it('detects a subject position for the focal point feature, a non-copywriting use of the same vision model', async () => {
+    const destroy = vi.fn()
+    const prompt = vi.fn().mockResolvedValue('{"cell":"middle-right"}')
+    const api = { availability: vi.fn().mockResolvedValue('available' as const), create: vi.fn().mockResolvedValue({ prompt, destroy }) }
+    const image = new Blob(['image'], { type: 'image/jpeg' })
+    await expect(generateChromeAiFocalPoint({ image, language: 'ja', api })).resolves.toEqual({ x: .8, y: .5 })
+    expect(prompt).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({ responseConstraint: expect.objectContaining({ properties: expect.objectContaining({ cell: expect.anything() }) }) }))
+    expect(destroy).toHaveBeenCalled()
   })
 })

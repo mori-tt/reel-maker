@@ -2,6 +2,7 @@ import type { Language } from './i18n'
 
 export type AiCopy = { title: string; cta: string }
 export type AiCaption = { caption: string; hashtags: string[] }
+export type AiFocalPoint = { x: number; y: number }
 export type CaptionPlatform = 'instagram' | 'tiktok' | 'youtube'
 export type OllamaModel = { name: string; model?: string; capabilities?: string[]; details?: { families?: string[] } }
 export type FileLike = { name: string; type: string }
@@ -26,8 +27,8 @@ export function normalizeOllamaUrl(url: string) { return url.trim().replace(/\/+
 export function getLocalOllamaCandidates(preferredUrl?: string) { return [...new Set([preferredUrl, ...OLLAMA_LOCAL_CANDIDATES].filter(Boolean).map(url => normalizeOllamaUrl(url as string)))] }
 
 const errors = {
-  en: { json: 'The AI response could not be parsed as JSON.', format: 'The AI response format is invalid.', copy: 'The AI response did not include a title and CTA.', caption: 'The AI response did not include a caption.', models: 'Could not fetch the Ollama model list', detect: 'Local Ollama could not be detected. Make sure Ollama is running.', connect: 'Could not connect to Ollama', response: 'Ollama returned no response body.' },
-  ja: { json: 'AIの応答をJSONとして読み取れませんでした。', format: 'AIの応答形式が正しくありません。', copy: 'AIからタイトルとCTAを取得できませんでした。', caption: 'AIからキャプションを取得できませんでした。', models: 'Ollamaのモデル一覧を取得できませんでした', detect: 'ローカルOllamaを自動検出できませんでした。Ollamaが起動中か確認してください。', connect: 'Ollamaへの接続に失敗しました', response: 'Ollamaから応答本文を取得できませんでした。' },
+  en: { json: 'The AI response could not be parsed as JSON.', format: 'The AI response format is invalid.', copy: 'The AI response did not include a title and CTA.', caption: 'The AI response did not include a caption.', focalPoint: 'The AI response did not include a usable position.', models: 'Could not fetch the Ollama model list', detect: 'Local Ollama could not be detected. Make sure Ollama is running.', connect: 'Could not connect to Ollama', response: 'Ollama returned no response body.' },
+  ja: { json: 'AIの応答をJSONとして読み取れませんでした。', format: 'AIの応答形式が正しくありません。', copy: 'AIからタイトルとCTAを取得できませんでした。', caption: 'AIからキャプションを取得できませんでした。', focalPoint: 'AIから位置情報を取得できませんでした。', models: 'Ollamaのモデル一覧を取得できませんでした', detect: 'ローカルOllamaを自動検出できませんでした。Ollamaが起動中か確認してください。', connect: 'Ollamaへの接続に失敗しました', response: 'Ollamaから応答本文を取得できませんでした。' },
 } as const
 const captionStyleHints: Record<CaptionPlatform, { en: string; ja: string }> = {
   instagram: { en: 'Instagram caption style: a warm, engaging hook, then 8-15 relevant hashtags.', ja: 'Instagramのキャプション向け：親しみやすく惹きつける文章の後に、関連ハッシュタグを8〜15個。' },
@@ -121,4 +122,51 @@ export async function generateAiCaption(options: { baseUrl: string; provider?: A
   const payload = await response.json() as { response?: string }
   if (!payload.response) throw new Error(errors[language].response)
   return parseAiCaption(payload.response, language)
+}
+
+// A different use of the same vision capability than copy/caption writing: instead of producing
+// marketing text, this asks the model to locate the main subject in the frame, so the app can
+// auto-set the crop focal point instead of requiring a manual tap. Chrome's/Ollama's on-device
+// models can understand and describe an image, but - unlike an image generation/editing model -
+// can't output pixels, so "a different use" here still means "outputs data derived from the
+// image", just data about *positioning* rather than *words to publish*.
+//
+// Asking for a 3x3 grid cell rather than continuous x/y floats is deliberate: testing against a
+// small on-device vision model (gemma3:4b) showed it reliably collapses free-form coordinates to
+// "0.5, 0.5" (dead center) regardless of where the subject actually is, but reasons much more
+// sensibly about which third of the frame something is in. A coarser but *actually responsive to
+// the image* answer beats a precise-looking one that's really just a constant.
+const GRID_CELLS = ['top-left', 'top-center', 'top-right', 'middle-left', 'center', 'middle-right', 'bottom-left', 'bottom-center', 'bottom-right'] as const
+const GRID_POINTS: Record<(typeof GRID_CELLS)[number], AiFocalPoint> = {
+  'top-left': { x: .2, y: .2 }, 'top-center': { x: .5, y: .2 }, 'top-right': { x: .8, y: .2 },
+  'middle-left': { x: .2, y: .5 }, center: { x: .5, y: .5 }, 'middle-right': { x: .8, y: .5 },
+  'bottom-left': { x: .2, y: .8 }, 'bottom-center': { x: .5, y: .8 }, 'bottom-right': { x: .8, y: .8 },
+}
+const clamp01 = (value: number) => Math.max(0, Math.min(1, value))
+export function parseAiFocalPoint(raw: string, language: Language = 'ja'): AiFocalPoint {
+  const cleaned = raw.trim().replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '')
+  let value: unknown
+  try { value = JSON.parse(cleaned) } catch { const match = cleaned.match(/\{[\s\S]*\}/); if (!match) throw new Error(errors[language].json); value = JSON.parse(match[0]) }
+  if (!value || typeof value !== 'object') throw new Error(errors[language].format)
+  const candidate = value as Record<string, unknown>
+  const cell = typeof candidate.cell === 'string' ? candidate.cell.trim().toLowerCase() : ''
+  if ((GRID_CELLS as readonly string[]).includes(cell)) return GRID_POINTS[cell as (typeof GRID_CELLS)[number]]
+  // Fall back to reading raw x/y if a model ignores the grid instruction and returns coordinates
+  // anyway - still useful as long as they're valid numbers.
+  const x = Number(candidate.x); const y = Number(candidate.y)
+  if (!Number.isFinite(x) || !Number.isFinite(y)) throw new Error(errors[language].focalPoint)
+  return { x: clamp01(x), y: clamp01(y) }
+}
+export function buildFocalPointPrompt(language: Language = 'ja') {
+  return language === 'en'
+    ? 'Look at this image, mentally divided into a 3x3 grid (top-left, top-center, top-right, middle-left, center, middle-right, bottom-left, bottom-center, bottom-right). Which single cell contains the main subject - the person, animal, or object the viewer\'s eye should land on? If there is no clear single subject, pick the cell with the most visually important area. Respond with JSON only: {"cell":"top-left"}, using exactly one of those 9 labels.'
+    : 'この画像を縦横3分割ずつ、合計9マスのグリッドに分けたと考えてください（top-left, top-center, top-right, middle-left, center, middle-right, bottom-left, bottom-center, bottom-right）。主な被写体（見る人の目が向かう人物・動物・物）は、どのマスにありますか？明確な被写体がない場合は、最も重要に見える部分があるマスを選んでください。JSONだけを返してください。形式: {"cell":"top-left"}（9つのラベルのいずれか1つ）。'
+}
+export async function generateAiFocalPoint(options: { baseUrl: string; provider?: AiProviderId; model: string; image: Blob; language?: Language; signal?: AbortSignal }): Promise<AiFocalPoint> {
+  const language = options.language ?? 'ja'; const image = await blobToBase64(options.image); const provider = options.provider ?? 'ollama-local'
+  const response = await fetch(ollamaApiUrl(options.baseUrl, 'generate', provider), { method: 'POST', headers: { 'Content-Type': 'application/json' }, signal: options.signal, body: JSON.stringify({ model: options.model.trim(), prompt: buildFocalPointPrompt(language), images: [image], stream: false, format: 'json' }) })
+  if (!response.ok) { const detail = await response.text().catch(() => ''); throw new Error(`${errors[language].connect} (${response.status})${detail ? `: ${detail.slice(0, 120)}` : ''}`) }
+  const payload = await response.json() as { response?: string }
+  if (!payload.response) throw new Error(errors[language].response)
+  return parseAiFocalPoint(payload.response, language)
 }
