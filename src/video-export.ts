@@ -37,7 +37,12 @@ export async function renderMp4(options: { canvas: HTMLCanvasElement; fps: numbe
   const ctx = prepareCanvas(options.canvas)
   const target = new BufferTarget()
   const output = new Output({ format: new Mp4OutputFormat(), target })
-  const videoSource = new CanvasSource(options.canvas, { codec: options.codec, quality: new Quality({ bitrate: options.bitrate }) })
+  // Constant bitrate: with the default variable mode, the encoder is free to spend fewer bits than
+  // the target on easy-to-compress frames (flat colors, blur). That's fine on its own, but it means
+  // the configured bitrate is only a ceiling, not a guarantee - a busy/noisy photo later in the same
+  // export could end up under-served relative to what "high quality" promises. CBR always spends the
+  // full budget, so the quality floor is consistent across every frame regardless of content.
+  const videoSource = new CanvasSource(options.canvas, { codec: options.codec, quality: new Quality({ bitrate: options.bitrate, bitrateMode: 'constant' }) })
   output.addVideoTrack(videoSource, { frameRate: options.fps })
   await output.start()
 

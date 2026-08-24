@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { VIDEO_FORMATS, VIDEO_PATTERNS, VIDEO_QUALITIES, getFrameState, getMimeType, getPatternFrame, getVideoFormat, getVideoPattern, getVideoQuality, isVideoFormatId, isVideoPatternId, isVideoQualityId, maxSecondsPerImage, minSecondsPerImage, moveItem, nextFrameDelayMs } from './reel'
+import { VIDEO_FORMATS, VIDEO_PATTERNS, VIDEO_QUALITIES, getFrameState, getMimeType, getPatternFrame, getVideoFormat, getVideoPattern, getVideoQuality, isVideoFormatId, isVideoPatternId, isVideoQualityId, maxSecondsPerImage, minSecondsPerImage, motionMultiplier, moveItem, nextFrameDelayMs } from './reel'
 
 describe('reel timeline', () => {
   it('maps playback time to a slide and local progress', () => {
@@ -30,10 +30,11 @@ describe('reel timeline', () => {
     expect(nextFrameDelayMs(0, 1, 30, 100)).toBe(0)
   })
 
-  it('provides all five selectable video patterns', () => {
-    expect(VIDEO_PATTERNS.map(pattern => pattern.id)).toEqual(['cinematic', 'dynamic', 'minimal', 'album', 'social'])
-    expect(new Set(VIDEO_PATTERNS.map(pattern => pattern.accent)).size).toBe(5)
+  it('provides all eight selectable video patterns', () => {
+    expect(VIDEO_PATTERNS.map(pattern => pattern.id)).toEqual(['cinematic', 'dynamic', 'minimal', 'album', 'social', 'noir', 'neon', 'polaroid'])
+    expect(new Set(VIDEO_PATTERNS.map(pattern => pattern.accent)).size).toBe(8)
     expect(getVideoPattern('social').name).toEqual({ en: 'Social trend', ja: 'SNSトレンド' })
+    expect(getVideoPattern('neon').name).toEqual({ en: 'Neon', ja: 'ネオン' })
   })
 
   it('validates stored pattern ids and falls back safely', () => {
@@ -67,21 +68,43 @@ describe('reel timeline', () => {
       expect(frame.textOpacity).toBeLessThanOrEqual(1)
       expect(frame.scale).toBeGreaterThan(0)
     })
-    expect(new Set(frames.map(frame => `${frame.scale}:${frame.translateX}:${frame.textScale}`)).size).toBe(5)
+    expect(new Set(frames.map(frame => `${frame.scale}:${frame.translateX}:${frame.textScale}`)).size).toBe(8)
     expect(getPatternFrame('cinematic', -1)).toEqual(getPatternFrame('cinematic', 0))
     expect(getPatternFrame('cinematic', 2)).toEqual(getPatternFrame('cinematic', 1))
   })
 
   it('gives every pattern its own color grade and signature decoration', () => {
-    expect(new Set(VIDEO_PATTERNS.map(pattern => pattern.filter)).size).toBe(5)
-    expect(VIDEO_PATTERNS.map(pattern => pattern.decoration)).toEqual(['letterbox', 'none', 'vignette', 'frame', 'badge'])
+    expect(new Set(VIDEO_PATTERNS.map(pattern => pattern.filter)).size).toBe(8)
+    expect(VIDEO_PATTERNS.map(pattern => pattern.decoration)).toEqual(['letterbox', 'none', 'vignette', 'frame', 'badge', 'grain', 'scanlines', 'polaroid'])
   })
 
   it('only flashes on cut for the dynamic pattern, fading out quickly', () => {
     expect(getPatternFrame('dynamic', 0).flashOpacity).toBeGreaterThan(0)
     expect(getPatternFrame('dynamic', 0).flashOpacity).toBeLessThanOrEqual(1)
     expect(getPatternFrame('dynamic', 1).flashOpacity).toBe(0)
-    for (const pattern of ['minimal', 'album', 'social', 'cinematic'] as const) expect(getPatternFrame(pattern, 0).flashOpacity).toBe(0)
+    for (const pattern of ['minimal', 'album', 'social', 'cinematic', 'noir', 'neon', 'polaroid'] as const) expect(getPatternFrame(pattern, 0).flashOpacity).toBe(0)
+  })
+
+  it('scales motion amount with the actual per-image duration, not just its timing curve', () => {
+    expect(motionMultiplier(3)).toBe(1)
+    expect(motionMultiplier(6)).toBeGreaterThan(1)
+    expect(motionMultiplier(1.5)).toBeLessThan(1)
+    expect(motionMultiplier(0)).toBe(1)
+    expect(motionMultiplier(-5)).toBe(1)
+    // Clamped so pathological inputs can't distort the motion into something broken.
+    expect(motionMultiplier(1000)).toBeLessThanOrEqual(1.8)
+    expect(motionMultiplier(0.001)).toBeGreaterThanOrEqual(.7)
+
+    // The reference duration (3s) reproduces the original tuned values exactly...
+    const reference = getPatternFrame('cinematic', .5, 1)
+    expect(getPatternFrame('cinematic', .5, 1, 3)).toEqual(reference)
+    // ...while a longer hold moves the same pattern further from rest (more zoom), and a shorter
+    // one moves it less, without changing where "rest" (scale 1, no offset) sits.
+    const longer = getPatternFrame('cinematic', .5, 1, 8)
+    const shorter = getPatternFrame('cinematic', .5, 1, 2)
+    expect(longer.scale - 1).toBeGreaterThan(reference.scale - 1)
+    expect(shorter.scale - 1).toBeLessThan(reference.scale - 1)
+    expect(getPatternFrame('cinematic', 0, 1, 8).scale).toBe(1)
   })
 
   it('raises the minimum seconds per image as the photo count grows', () => {

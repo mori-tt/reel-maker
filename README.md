@@ -21,13 +21,18 @@ This README covers setup, deployment, and configuration. For a walkthrough of us
 - AI copy suggestions via Chrome on-device AI, Local Ollama, or Ollama Cloud
 - English / Japanese UI (English by default)
 - Export quality presets: Standard (30fps) and High quality (60fps, 42 Mbps) — both render at 1080px wide, with height set by the chosen format
-- 5 motion styles, each with its own color grade and signature decoration — not just a faster/slower pan-zoom:
+- 8 motion styles, each with its own color grade and signature decoration — not just a faster/slower pan-zoom:
   - **Cinematic** — slow zoom + letterbox bars + muted grade
   - **Dynamic** — fast zoom/slide + a white flash on every cut + punchy grade
   - **Minimal** — quiet cuts + soft vignette
   - **Photo album** — gentle pan + warm sepia grade and vignette
   - **Social trend** — quick cuts + a pulsing accent badge + bold grade
+  - **Noir** — dramatic zoom + grayscale + film grain
+  - **Neon** — pulsing zoom + scan lines + electric color
+  - **Polaroid** — gentle drift + instant-photo border + faded tone
+- Motion amount (zoom/pan/rotation) scales with the actual per-image duration, so an 8s hold moves proportionally more than a 2s one instead of both using the same fixed range
 - Duration per image automatically adjusts with photo count — the minimum rises and the maximum comes down as you add more, so a large batch neither flickers by nor runs unexpectedly long
+- Constant-bitrate encoding, so export quality never dips below the selected preset regardless of how visually complex the photos are
 - Output formats: Instagram Reel / Story, portrait/square feed, YouTube Shorts, each with format-aware safe areas
 - MP4 (H.264) export at the resolution of the chosen format (1080 wide; 1920/1350/1080 tall); automatically falls back to WebM on browsers without WebCodecs
 
@@ -185,13 +190,18 @@ npm run build
 - Chrome端末内AI、ローカルOllama、Ollama Cloudによる画像別タイトル・CTA提案
 - 英語／日本語UI切替（初回は英語）
 - 書き出しプリセット：標準（30fps）／高画質（60fps・42Mbps）。幅はいずれも1080pxで、高さは選んだ用途によって変わります
-- 5種類の動画演出。単にパン・ズームの速さを変えるだけでなく、色調と装飾も演出ごとに変えて見た目を差別化：
+- 8種類の動画演出。単にパン・ズームの速さを変えるだけでなく、色調と装飾も演出ごとに変えて見た目を差別化：
   - **シネマティック** — 遅いズーム＋レターボックス＋落ち着いた色調
   - **ダイナミック** — 速いズーム／スライド＋カットごとの白フラッシュ＋鮮やかな色調
   - **ミニマル** — 静かな切り替え＋柔らかいビネット
   - **フォトアルバム** — 柔らかなパン＋暖色セピア調＋暖色ビネット
   - **SNSトレンド** — 短いカット＋鼓動するアクセントバッジ＋ポップな色調
+  - **フィルムノワール** — ドラマチックなズーム＋モノクロ＋フィルム粒子
+  - **ネオン** — 脈打つズーム＋走査線＋電飾カラー
+  - **ポラロイド** — 柔らかな漂うような動き＋ポラロイド風フレーム＋褪せた色調
+- 動きの量（ズーム・パン・回転）が1枚あたりの表示時間に応じて調整され、8秒の表示は2秒の表示より比例して大きく動く（固定量ではない）
 - 写真の枚数に応じて1枚あたりの表示時間の下限・上限が自動的に調整され、枚数が多くても切り替えが速すぎたり、逆に合計が長くなりすぎたりしない
+- 固定ビットレートでエンコードするため、写真の内容が複雑でも選んだプリセットの画質を下回らない
 - 出力用途：Instagramリール／ストーリー、フィード縦型・正方形、YouTube Shorts。それぞれ用途別の安全領域を最適化
 - 選んだ用途の解像度（幅1080px、高さ1920／1350／1080px）でMP4（H.264）書き出し。WebCodecs非対応ブラウザでは自動的にWebMへフォールバック
 
