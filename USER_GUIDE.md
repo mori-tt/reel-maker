@@ -12,7 +12,7 @@ This guide covers day-to-day use of the app (turning photos into a video). For l
 
 ### What Frameflow does
 
-Frameflow turns a set of photos into a short video sized for wherever you're posting it — an Instagram Reel or Story, a portrait or square feed post, or a YouTube Short — directly in your browser. Nothing leaves your device except the specific image you send to an AI provider, and only if you choose to use one.
+Frameflow turns a set of photos into a short video sized for wherever you're posting it — an Instagram Reel or Story, a portrait or square feed post, or a YouTube Short — directly in your browser. Regular use never sends a photo anywhere. The only exception is [AI copy suggestions](#ai-copy-suggestions-en): two of its three options (Local Ollama and Ollama Cloud) do send the image elsewhere, while Chrome's on-device AI keeps it on your device too.
 
 ### Quick start
 
@@ -64,6 +64,8 @@ Under **"Motion style"**, pick one of five looks. Each has its own pacing, color
 
 The preview updates live so you can compare before exporting.
 
+<a id="ai-copy-suggestions-en"></a>
+
 ### 5. AI copy suggestions (optional)
 
 Turn on **"AI copy suggestions"** to have AI write a title and CTA for you, based on each photo.
@@ -106,7 +108,7 @@ Use the **EN / 日本語** switch in the top-right corner at any time — it cha
 
 ### Frameflowでできること
 
-Frameflowは、手持ちの写真から投稿先に合わせたショート動画（Instagramリール／ストーリー、フィード縦型・正方形投稿、YouTube Shortsなど）をブラウザ内だけで作れるアプリです。AIプロバイダーを自分で選んで使わない限り、画像がどこかへ送信されることはありません。
+Frameflowは、手持ちの写真から投稿先に合わせたショート動画（Instagramリール／ストーリー、フィード縦型・正方形投稿、YouTube Shortsなど）をブラウザ内だけで作れるアプリです。通常の操作で画像がどこかへ送信されることはありません。唯一の例外は[AIコピー提案（任意）](#ai-copy-suggestions-ja)で、3方式のうちローカルOllamaとOllama Cloudの2つは画像を外部へ送信しますが、Chrome端末内AIは画像を端末の外に出しません。
 
 ### かんたんな流れ
 
@@ -157,6 +159,8 @@ Frameflowは、手持ちの写真から投稿先に合わせたショート動�
 - **SNSトレンド** — 短いカット、鼓動するアクセントバッジ、鮮やかで彩度の高い色調。トレンド感のある、SNSらしい内容向き
 
 プレビューはリアルタイムで更新されるので、書き出す前に見比べられます。
+
+<a id="ai-copy-suggestions-ja"></a>
 
 ### 5. AIコピー提案（任意）
 

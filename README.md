@@ -8,7 +8,7 @@
 
 ## English
 
-Frameflow turns a set of photos into a polished short video sized for wherever you're posting it — Instagram Reel / Story (9:16), portrait (4:5) or square (1:1) feed posts, YouTube Shorts (9:16). Everything — image conversion and video rendering — happens in the browser; nothing is uploaded unless you explicitly choose an external AI provider.
+Frameflow turns a set of photos into a polished short video sized for wherever you're posting it — Instagram Reel / Story (9:16), portrait (4:5) or square (1:1) feed posts, YouTube Shorts (9:16). Regular use — adding photos, converting HEIC, picking a motion style, exporting — happens entirely in your browser; no photo is sent anywhere for that. A photo only leaves your device if you turn on AI copy suggestions and use Local Ollama or Ollama Cloud (Chrome's on-device AI never sends the image off your device either); see [AI copy suggestions](#ai-copy-suggestions) below for which is which.
 
 This README covers setup, deployment, and configuration. For a walkthrough of using the app itself (adding photos, motion styles, AI copy, exporting), see [USER_GUIDE.md](USER_GUIDE.md).
 
@@ -47,6 +47,8 @@ A browser page can never start the Ollama process itself — that's a deliberate
 Export prefers WebCodecs (`VideoEncoder`) through [mediabunny](https://mediabunny.dev/). Each frame is drawn to a canvas and encoded with an explicit timestamp, independent of real time, so a slow device just makes the export take longer — it can never drop or duplicate a frame. (The older `canvas.captureStream` + `MediaRecorder` approach is a real-time capture: if a single frame's draw call takes too long, that frame is gone.) As a side effect the container is also the far more portable MP4 (H.264), which plays back correctly on Safari 16.4+ too.
 
 On browsers without WebCodecs support (older Firefox, for example), export automatically falls back to the `canvas.captureStream` + `MediaRecorder` WebM path.
+
+<a id="ai-copy-suggestions"></a>
 
 ### AI copy suggestions
 
@@ -170,7 +172,7 @@ npm run build
 
 ## 日本語
 
-画像から、投稿先に合わせたショート動画を作るWebアプリです。Instagramリール／ストーリー（9:16）、フィード縦型（4:5）・正方形（1:1）投稿、YouTube Shorts（9:16）に対応しています。画像変換と動画生成はブラウザ内で行い、外部AIプロバイダーを明示的に選ばない限り画像はどこにも送信されません。
+画像から、投稿先に合わせたショート動画を作るWebアプリです。Instagramリール／ストーリー（9:16）、フィード縦型（4:5）・正方形（1:1）投稿、YouTube Shorts（9:16）に対応しています。通常の操作（画像の追加・HEIC変換・動画パターンの選択・書き出しなど）はすべてブラウザ内だけで完結し、画像はどこにも送信されません。画像が端末の外へ送信されるのは、「AIコピー提案」機能でローカルOllamaまたはOllama Cloudを使ったときだけです（Chrome端末内AIも画像を端末の外に出しません）。どの方式がどう違うかは下記[AIコピー提案](#aiコピー提案)を参照してください。
 
 このREADMEはセットアップ・デプロイ・設定についての内容です。アプリの使い方（写真の追加、動画パターン、AIコピー、書き出しなど）は[USER_GUIDE.md](USER_GUIDE.md)を参照してください。
 
@@ -209,6 +211,8 @@ npm run dev
 書き出しは [mediabunny](https://mediabunny.dev/) 経由のWebCodecs（`VideoEncoder`）を優先して使います。画像1枚ごとにcanvasへ描画し、実時間とは無関係に明示的なタイムスタンプでエンコードするため、端末が重くてもフレームが欠落・重複しません（描画に時間がかかるほど書き出しが遅くなるだけです）。従来の`canvas.captureStream` + `MediaRecorder`によるリアルタイム録画は、1フレームの描画が時間内に間に合わないとその場でコマ落ちします。副次的に、コンテナも汎用性の高いMP4（H.264）になり、Safari 16.4以降でも正しく再生できます。
 
 WebCodecsが使えないブラウザ（古いFirefoxなど）では、従来どおり`canvas.captureStream` + `MediaRecorder`によるWebM書き出しに自動フォールバックします。
+
+<a id="aiコピー提案"></a>
 
 ### AIコピー提案
 
