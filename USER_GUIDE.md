@@ -30,6 +30,11 @@ Click **"+ Add images"** or the drop zone to select JPG, PNG, WebP, HEIC, or HEI
 
 Once added, each photo appears in **"Build your story"** in the order it will play. Use the ↑ / ↓ buttons to reorder, or × to remove one.
 
+Further down, in **"Copy for every image"**, each photo also gets two composition controls:
+
+- **Auto-enhance**: a one-tap checkbox that corrects exposure and contrast (brightens underexposed shots, calms down overly harsh ones). It's computed from that photo alone and only ever applied when the checkbox is on — it never permanently modifies the original file.
+- **Focal point**: tap the small thumbnail where the subject is. Since the video crops each photo to fill the target aspect ratio, this keeps the subject in frame instead of the default center crop cutting it off. A **"Center"** button appears once you've moved it, to undo.
+
 ### 2. Choose a video format and quality
 
 Under **"Video format"**, pick the output that matches where you're posting:
@@ -71,9 +76,15 @@ Under **"Motion style"**, pick one of twelve looks. Each has its own pacing, col
 
 The preview updates live so you can compare before exporting. Longer per-image durations also move proportionally more than shorter ones for the same style, so an 8-second hold doesn't feel static next to a 2-second one.
 
+### 5. Background music (optional)
+
+Under **"Background music"**, click **"Add a music file"** to upload your own track (any audio format your browser can decode). It's automatically trimmed to match the video's length if it's longer, or looped seamlessly if it's shorter, with a short fade-out at the very end either way. Use the volume slider to adjust how loud it plays, or **"Remove"** to drop it.
+
+Music is only included in the MP4 export — the older WebM fallback (used only by browsers without the newer WebCodecs API) stays video-only.
+
 <a id="ai-copy-suggestions-en"></a>
 
-### 5. AI copy suggestions (optional)
+### 6. AI copy suggestions (optional)
 
 Turn on **"AI copy suggestions"** to have AI write a title and CTA for you, based on each photo.
 
@@ -87,15 +98,17 @@ Turn on **"AI copy suggestions"** to have AI write a title and CTA for you, base
 
 If something goes wrong, the status message under the provider buttons explains why (for example, the app now specifically detects and explains the case where the public HTTPS site can't reach a local Ollama, rather than showing a generic connection error).
 
-### 6. Preview
+### 7. Preview
 
 The phone-shaped preview on the right plays back your video with the fade/zoom/text timing you'll get in the final export. Use the play button and scrubber to check pacing and text placement before exporting.
 
-### 7. Export your video
+### 8. Export your video
 
 Click **"Export video"**. Frameflow renders every frame in the browser and downloads an MP4 (H.264) file named after the format you picked (for example `instagram-reel.mp4`). On browsers without the newer WebCodecs API, it automatically falls back to WebM instead — either way, no upload is involved; the file is generated and downloaded locally.
 
-### 8. Switching languages
+Prefer stills over (or alongside) video? Click **"Export as images"** instead to download every slide as its own JPEG — useful for an Instagram carousel post or anywhere else you want images rather than a video. Each one uses the same motion style's color grade, decoration, and text, frozen at a clean, fully-opaque moment rather than mid-fade. They download one at a time, named `<format>-01.jpg`, `<format>-02.jpg`, and so on in slide order.
+
+### 9. Switching languages
 
 Use the **EN / 日本語** switch in the top-right corner at any time — it changes the interface language immediately without losing your work.
 
@@ -132,6 +145,11 @@ Frameflowは、手持ちの写真から投稿先に合わせたショート動�
 **「＋画像を追加」**またはドロップエリアから、JPG・PNG・WebP・HEIC・HEIFファイルを複数選択できます。HEIC/HEIF（iPhoneで多い形式）は自動でJPEGに変換されます。ファイルが大きいと少し時間がかかります。
 
 追加した写真は**「ストーリーを組み立てる」**に再生順で並びます。↑／↓で並べ替え、×で削除できます。
+
+さらに下の**「画像ごとのコピー一覧」**では、写真ごとに2つの構図調整もできます：
+
+- **自動補正**：ワンタップで露出とコントラストを補正するチェックボックスです（暗すぎる写真を明るく、コントラストが強すぎる写真は落ち着かせます）。その写真単体の解析結果に基づき、チェックを入れたときだけ適用されます。元のファイルを書き換えることはありません。
+- **フォーカルポイント**：小さなサムネイルの、被写体がある位置をタップします。動画は用途に合わせて各写真をクロップするため、これを設定しておくと既定の中央クロップで被写体が切れてしまうのを防げます。位置をずらすと**「中央に戻す」**ボタンが表示され、いつでも元に戻せます。
 
 ### 2. 動画の用途と画質
 
@@ -174,9 +192,15 @@ Frameflowは、手持ちの写真から投稿先に合わせたショート動�
 
 プレビューはリアルタイムで更新されるので、書き出す前に見比べられます。1枚あたりの表示時間が長いほど、同じ演出でも動きの量が比例して大きくなるため、8秒の表示が2秒の表示に比べて動きが単調に感じにくくなっています。
 
+### 5. BGM（背景音楽・任意）
+
+**「BGM（背景音楽）」**の**「音楽ファイルを追加」**から、お好きな音楽ファイル（ブラウザが再生できる形式）をアップロードできます。動画より長い場合は自動でトリミングし、短い場合はシームレスにループして、いずれの場合も最後に短いフェードアウトが入ります。音量スライダーで大きさを調整でき、**「削除」**で解除できます。
+
+BGMはMP4書き出し時のみ反映されます。新しいWebCodecs APIに対応していない一部ブラウザで使われる旧WebM形式では、動画のみになります。
+
 <a id="ai-copy-suggestions-ja"></a>
 
-### 5. AIコピー提案（任意）
+### 6. AIコピー提案（任意）
 
 **「AIコピー提案」**をオンにすると、写真の内容に合わせてAIがタイトル・CTAを考えてくれます。
 
@@ -190,15 +214,17 @@ Frameflowは、手持ちの写真から投稿先に合わせたショート動�
 
 うまくいかない場合、各方式ボタンの下にあるステータス表示に理由が出ます（例えば、公開HTTPSサイトからローカルOllamaへ接続できないケースは、単なる接続エラーではなく原因を明示するようになっています）。
 
-### 6. プレビュー
+### 7. プレビュー
 
 右側のスマートフォン風プレビューで、実際の書き出しと同じフェード・ズーム・文字のタイミングを確認できます。再生ボタンとシークバーで、書き出し前にペース配分や文字の位置を確認しましょう。
 
-### 7. 動画の書き出し
+### 8. 動画の書き出し
 
 **「動画を書き出す」**を押すと、Frameflowがブラウザ内で全フレームを描画し、選んだ用途に合わせた名前（例：`instagram-reel.mp4`）のMP4（H.264）ファイルをダウンロードします。新しいWebCodecs APIに対応していないブラウザでは自動的にWebMにフォールバックします。いずれの場合もアップロードは発生せず、その場で生成してダウンロードするだけです。
 
-### 8. 言語の切り替え
+動画ではなく（あるいは動画に加えて）静止画が欲しい場合は、代わりに**「画像として書き出す」**を押してください。各スライドをそれぞれ1枚のJPEGとしてダウンロードします。Instagramのカルーセル投稿など、動画ではなく画像が必要な場面に便利です。選んだ動画パターンと同じ色調・装飾・文字を使い、フェードの途中ではなく完全に不透明でくっきりした状態で書き出されます。`用途名-01.jpg`、`用途名-02.jpg`…という名前でスライド順に1枚ずつダウンロードされます。
+
+### 9. 言語の切り替え
 
 右上の**EN／日本語**の切り替えはいつでも使えます。作業中の内容を失うことなく、表示言語だけを即座に切り替えます。
 

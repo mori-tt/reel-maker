@@ -18,6 +18,10 @@ This README covers setup, deployment, and configuration. For a walkthrough of us
 - In-browser HEIC/HEIF → JPEG conversion
 - Reorder / remove images
 - Per-image title, CTA, visibility, and text position
+- Per-image auto-enhance: an optional, one-tap exposure/contrast correction (histogram-based, entirely local)
+- Per-image focal point: tap where the subject is so cropping to the target aspect ratio keeps it in frame
+- Background music: upload your own track; it's trimmed or looped to the video's length with a fade-out at the end (MP4 export only)
+- Export every slide as a set of still images (e.g. an Instagram carousel post) in addition to video, using the same color grade/decoration/text as the chosen motion style
 - AI copy suggestions via Chrome on-device AI, Local Ollama, or Ollama Cloud
 - English / Japanese UI (English by default)
 - Export quality presets: Standard (30fps) and High quality (60fps, 42 Mbps) — both render at 1080px wide, with height set by the chosen format
@@ -191,6 +195,10 @@ npm run build
 - HEIC / HEIFをブラウザ内でJPEGへ変換
 - 画像の並べ替え・削除
 - 画像ごとのタイトル・CTA・表示有無・差し込み位置の編集
+- 画像ごとの自動補正：ワンタップの露出・コントラスト補正（ヒストグラム解析、完全にローカル処理）
+- 画像ごとのフォーカルポイント：被写体の位置をタップすると、用途に合わせてクロップしても被写体が枠内に残る
+- BGM（背景音楽）：お好きな音楽ファイルをアップロード可能。動画の長さに合わせて自動でトリミングまたはループし、最後はフェードアウト（MP4書き出し時のみ）
+- 動画に加えて、各画像を静止画セット（Instagramカルーセル投稿など）としても書き出し可能。選んだ動画パターンと同じ色調・装飾・文字を反映
 - Chrome端末内AI、ローカルOllama、Ollama Cloudによる画像別タイトル・CTA提案
 - 英語／日本語UI切替（初回は英語）
 - 書き出しプリセット：標準（30fps）／高画質（60fps・42Mbps）。幅はいずれも1080pxで、高さは選んだ用途によって変わります

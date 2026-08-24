@@ -18,6 +18,10 @@ const translations = {
     formatTitle: 'Video format', motionTitle: 'Motion style', emptyPreviewLong: 'Add photos to see the preview here', previewAlt: 'Video preview', imageReadError: 'Could not read this image.', imageConvertError: 'Image conversion failed.', chromeChecking: 'Checking Chrome AI and preparing the model…', chromePreparing: 'Preparing Chrome AI model…', chromePrepareError: 'Could not prepare Chrome AI.', aiError: 'AI processing failed.', cloudHint: 'Uses the OLLAMA_CLOUD_API_KEY server environment variable.',
     aiSelectHint: 'Tap the photos below that should get AI copy — only the selected ones are used.', aiNoSelection: 'Tap at least one photo below to select it first.', selectAll: 'Select all', selectNone: 'Clear selection',
     ollamaHttpsBlocked: 'This page is served over HTTPS, so the browser blocks it from reaching your local Ollama — that is a browser security rule, not an Ollama problem. Use Ollama Cloud here, or run “npm run dev” and open the app at http://localhost to use Local Ollama.',
+    autoEnhance: 'Auto-enhance', focalHint: 'Tap where the subject is to keep it in frame when cropped.', resetFocal: 'Center',
+    exportImages: 'Export as images', exportingImages: 'Rendering images…',
+    bgmTitle: 'Background music', bgmHint: 'Upload your own track — it will be trimmed or looped to match the video length, with a fade-out at the end.', bgmAdd: 'Add a music file', bgmVolume: 'Volume', bgmRemove: 'Remove',
+    bgmWebmNote: 'Music is only included in the MP4 export. The older WebM fallback (rare browsers without WebCodecs) stays video-only.',
   },
   ja: {
     language: '言語', english: 'English', japanese: '日本語', addImages: '画像を追加', buildStory: 'ストーリーを組み立てる', converting: '画像を変換中…', selectPhotos: '写真を選択',
@@ -35,6 +39,10 @@ const translations = {
     formatTitle: '動画の用途', motionTitle: '動画パターン', emptyPreviewLong: '写真を追加すると、ここにプレビューされます', previewAlt: '動画プレビュー', imageReadError: 'この画像を読み込めませんでした。', imageConvertError: '画像の変換に失敗しました。', chromeChecking: 'Chrome AIを確認し、必要なモデルを準備しています…', chromePreparing: 'Chrome AIモデルを準備中…', chromePrepareError: 'Chrome AIを準備できませんでした。', aiError: 'AI処理でエラーが発生しました。', cloudHint: 'サーバー環境変数 OLLAMA_CLOUD_API_KEY を使用します。',
     aiSelectHint: '下の写真から、AIにコピーを作ってほしい画像をタップして選んでください。選んだ画像だけ使われます。', aiNoSelection: '先に下の写真を1枚以上タップして選んでください。', selectAll: 'すべて選択', selectNone: '選択解除',
     ollamaHttpsBlocked: 'このページはHTTPSで配信されているため、ブラウザがローカルのOllamaへの接続をブロックしています（Ollama側の不具合ではなく、ブラウザのセキュリティ制限です）。ここでは「Ollama Cloud」をお使いいただくか、ローカルOllamaを使うには「npm run dev」でこのアプリをhttp://localhostで起動してください。',
+    autoEnhance: '自動補正', focalHint: '被写体の位置をタップすると、クロップ時にその部分を残します。', resetFocal: '中央に戻す',
+    exportImages: '画像として書き出す', exportingImages: '画像を生成中…',
+    bgmTitle: 'BGM（背景音楽）', bgmHint: 'お好きな音楽ファイルをアップロードできます。動画の長さに合わせて自動でトリミングまたはループし、最後はフェードアウトします。', bgmAdd: '音楽ファイルを追加', bgmVolume: '音量', bgmRemove: '削除',
+    bgmWebmNote: 'BGMはMP4書き出し時のみ反映されます。WebCodecs非対応の一部ブラウザで使われる旧WebM形式では、動画のみになります。',
   },
 } as const
 
