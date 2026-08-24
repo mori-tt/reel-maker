@@ -85,11 +85,11 @@ describe('reel timeline', () => {
   })
 
   it('raises the minimum seconds per image as the photo count grows', () => {
-    expect(minSecondsPerImage(1)).toBe(2)
-    expect(minSecondsPerImage(8)).toBe(2)
-    expect(minSecondsPerImage(9)).toBe(3)
-    expect(minSecondsPerImage(16)).toBe(3)
-    expect(minSecondsPerImage(17)).toBe(4)
-    expect(minSecondsPerImage(50)).toBe(4)
+    expect(minSecondsPerImage(1)).toBe(3)
+    expect(minSecondsPerImage(8)).toBe(3)
+    expect(minSecondsPerImage(9)).toBe(4)
+    expect(minSecondsPerImage(16)).toBe(4)
+    expect(minSecondsPerImage(17)).toBe(5)
+    expect(minSecondsPerImage(50)).toBe(5)
   })
 })

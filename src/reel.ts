@@ -69,9 +69,9 @@ export function moveItem<T>(items: readonly T[], from: number, to: number): T[] 
 // story. Raise the floor as the count grows so adding photos can't make the video feel rushed;
 // the total simply gets longer instead. Callers should also clamp the current value up to this.
 export function minSecondsPerImage(slideCount: number): number {
-  if (slideCount <= 8) return 2
-  if (slideCount <= 16) return 3
-  return 4
+  if (slideCount <= 8) return 3
+  if (slideCount <= 16) return 4
+  return 5
 }
 const MIME_TYPES = ['video/webm;codecs=av01', 'video/webm;codecs=vp9', 'video/webm;codecs=vp8', 'video/webm']
 export function getMimeType(isSupported: (type: string) => boolean) { return MIME_TYPES.find(isSupported) ?? 'video/webm' }
