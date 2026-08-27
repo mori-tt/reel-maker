@@ -7,7 +7,7 @@
 // fallback for whenever that's not what someone wants or has time for, not a replacement for it.
 import type { Language } from './i18n'
 
-export type MusicMoodId = 'calm' | 'uplifting' | 'cinematic' | 'playful' | 'dramatic' | 'lofi' | 'energetic' | 'acoustic'
+export type MusicMoodId = 'calm' | 'uplifting' | 'cinematic' | 'playful' | 'dramatic' | 'lofi' | 'energetic' | 'acoustic' | 'jazz' | 'electronic' | 'classical'
 export const MUSIC_MOODS: readonly { id: MusicMoodId; name: { en: string; ja: string }; description: { en: string; ja: string } }[] = [
   { id: 'calm', name: { en: 'Calm', ja: 'カーム' }, description: { en: 'Slow, warm pad chords', ja: 'ゆったり暖かいパッドコード' } },
   { id: 'uplifting', name: { en: 'Uplifting', ja: 'アップリフティング' }, description: { en: 'Bright chords with a gentle arpeggio', ja: '明るいコードと柔らかいアルペジオ' } },
@@ -17,6 +17,9 @@ export const MUSIC_MOODS: readonly { id: MusicMoodId; name: { en: string; ja: st
   { id: 'lofi', name: { en: 'Lofi', ja: 'ローファイ' }, description: { en: 'Muffled jazzy 7th chords, relaxed', ja: 'こもったジャジーな7thコード、まったり' } },
   { id: 'energetic', name: { en: 'Energetic', ja: 'エナジェティック' }, description: { en: 'Fast bright chords + busy arpeggio', ja: '速く明るいコード＋忙しいアルペジオ' } },
   { id: 'acoustic', name: { en: 'Acoustic', ja: 'アコースティック' }, description: { en: 'Simple, warm, folk-like strum', ja: 'シンプルで暖かい、フォーク風のストラム' } },
+  { id: 'jazz', name: { en: 'Jazz', ja: 'ジャズ' }, description: { en: 'Smooth swing feel with major 7th chords', ja: 'スウィング感あるマジャーセブンスコード' } },
+  { id: 'electronic', name: { en: 'Electronic', ja: '電子' }, description: { en: 'Bright arpeggiated synth leads', ja: '明るいアルペジエイテッドシンセリード' } },
+  { id: 'classical', name: { en: 'Classical', ja: 'クラシック' }, description: { en: 'Elegant string pad with chord progressions', ja: 'エレガントなストリングパッドとコード進行' } },
 ] as const
 export function isMusicMoodId(value: string | null): value is MusicMoodId { return MUSIC_MOODS.some(mood => mood.id === value) }
 export function getMusicMood(id: MusicMoodId) { return MUSIC_MOODS.find(mood => mood.id === id) ?? MUSIC_MOODS[0] }
@@ -55,6 +58,9 @@ const MOODS: Record<MusicMoodId, MoodConfig> = {
   lofi: { keyRoot: -9, progression: [{ rootOffset: 0, triad: MAJOR_SEVENTH }, { rootOffset: 9, triad: MINOR_SEVENTH }, { rootOffset: 5, triad: MAJOR_SEVENTH }, { rootOffset: 7, triad: DOMINANT_SEVENTH }], chordSeconds: 4, octaveShift: -12, cutoffHz: 550, texture: 'none', volume: .4, waveform: 'triangle' },
   energetic: { keyRoot: -9, progression: [{ rootOffset: 0, triad: MAJOR_TRIAD }, { rootOffset: 5, triad: MAJOR_TRIAD }, { rootOffset: 7, triad: MAJOR_TRIAD }, { rootOffset: 9, triad: MINOR_TRIAD }], chordSeconds: 1.6, octaveShift: 0, cutoffHz: 2800, texture: 'arpeggio', volume: .28, waveform: 'triangle' },
   acoustic: { keyRoot: -9, progression: [{ rootOffset: 0, triad: MAJOR_TRIAD }, { rootOffset: 5, triad: MAJOR_TRIAD }, { rootOffset: 7, triad: MAJOR_TRIAD }, { rootOffset: 0, triad: MAJOR_TRIAD }], chordSeconds: 3.2, octaveShift: -12, cutoffHz: 1300, texture: 'none', volume: .38, waveform: 'triangle', attackRatio: .04 },
+  jazz: { keyRoot: -9, progression: [{ rootOffset: 0, triad: MAJOR_SEVENTH }, { rootOffset: 5, triad: MINOR_SEVENTH }, { rootOffset: 9, triad: MAJOR_SEVENTH }, { rootOffset: 2, triad: MINOR_SEVENTH }], chordSeconds: 3.5, octaveShift: -12, cutoffHz: 700, texture: 'none', volume: .35, waveform: 'triangle' },
+  electronic: { keyRoot: -6, progression: [{ rootOffset: 0, triad: MAJOR_TRIAD }, { rootOffset: 4, triad: MAJOR_TRIAD }, { rootOffset: 7, triad: MINOR_TRIAD }, { rootOffset: 11, triad: DOMINANT_SEVENTH }], chordSeconds: 2, octaveShift: 0, cutoffHz: 1800, texture: 'arpeggio', volume: .3, waveform: 'sine' },
+  classical: { keyRoot: -12, progression: [{ rootOffset: 0, triad: MINOR_TRIAD }, { rootOffset: 4, triad: MAJOR_TRIAD }, { rootOffset: 7, triad: MINOR_TRIAD }, { rootOffset: 3, triad: MAJOR_TRIAD }], chordSeconds: 4.5, octaveShift: -12, cutoffHz: 500, texture: 'none', volume: .3, waveform: 'sine' },
 }
 
 // A single short, decaying note - used for the arpeggio layer so it reads as "plucked" rather
