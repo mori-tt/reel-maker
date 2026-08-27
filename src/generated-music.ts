@@ -7,7 +7,7 @@
 // fallback for whenever that's not what someone wants or has time for, not a replacement for it.
 import type { Language } from './i18n'
 
-export type MusicMoodId = 'calm' | 'uplifting' | 'cinematic' | 'playful' | 'dramatic' | 'lofi' | 'energetic' | 'acoustic' | 'jazz' | 'electronic' | 'classical'
+export type MusicMoodId = 'calm' | 'uplifting' | 'cinematic' | 'playful' | 'dramatic' | 'lofi' | 'energetic' | 'acoustic' | 'jazz' | 'electronic' | 'classical' | 'ambient' | 'hiphop' | 'rock' | 'pop' | 'blues' | 'folk' | 'metal' | 'rnb' | 'country' | 'reggae'
 export const MUSIC_MOODS: readonly { id: MusicMoodId; name: { en: string; ja: string }; description: { en: string; ja: string } }[] = [
   { id: 'calm', name: { en: 'Calm', ja: 'カーム' }, description: { en: 'Slow, warm pad chords', ja: 'ゆったり暖かいパッドコード' } },
   { id: 'uplifting', name: { en: 'Uplifting', ja: 'アップリフティング' }, description: { en: 'Bright chords with a gentle arpeggio', ja: '明るいコードと柔らかいアルペジオ' } },
@@ -20,6 +20,16 @@ export const MUSIC_MOODS: readonly { id: MusicMoodId; name: { en: string; ja: st
   { id: 'jazz', name: { en: 'Jazz', ja: 'ジャズ' }, description: { en: 'Smooth swing feel with major 7th chords', ja: 'スウィング感あるマジャーセブンスコード' } },
   { id: 'electronic', name: { en: 'Electronic', ja: '電子' }, description: { en: 'Bright arpeggiated synth leads', ja: '明るいアルペジエイテッドシンセリード' } },
   { id: 'classical', name: { en: 'Classical', ja: 'クラシック' }, description: { en: 'Elegant string pad with chord progressions', ja: 'エレガントなストリングパッドとコード進行' } },
+  { id: 'ambient', name: { en: 'Ambient', ja: 'アンビエント' }, description: { en: 'Long, evolving pad textures', ja: '長く変化するパッド質感' } },
+  { id: 'hiphop', name: { en: 'Hip-Hop', ja: 'ヒップホップ' }, description: { en: 'Boom-bap beat with punchy drums', ja: 'パンチの効いたビートのブームバップ' } },
+  { id: 'rock', name: { en: 'Rock', ja: 'ロック' }, description: { en: 'Power chord riffs with driving rhythm', ja: 'パワーコードリフとドライビングリズム' } },
+  { id: 'pop', name: { en: 'Pop', ja: 'ポップ' }, description: { en: 'Catchy major progressions, upbeat', ja: 'キャッチーな major プログレッション、アップビート' } },
+  { id: 'blues', name: { en: 'Blues', ja: 'ブルース' }, description: { en: '12-bar blues progressions, expressive', ja: '12小節ブルース進行、表現豊か' } },
+  { id: 'folk', name: { en: 'Folk', ja: 'フォーク' }, description: { en: 'Acoustic guitar arpeggios, storytelling', ja: 'アコースティックギターのアルペジオ、ストーリー性' } },
+  { id: 'metal', name: { en: 'Metal', ja: 'メタル' }, description: { en: 'Heavy distortion, fast tempos', ja: ' heavy distortion, fast tempos' } },
+  { id: 'rnb', name: { en: 'R&B', ja: 'R&B' }, description: { en: 'Smooth chords, R&B rhythm pattern', ja: '滑らかなコード、R&Bリズムパターン' } },
+  { id: 'country', name: { en: 'Country', ja: 'カントリー' }, description: { en: 'Twangy guitar, major progressions', ja: 'ツインギター、major プログレッション' } },
+  { id: 'reggae', name: { en: 'Reggae', ja: 'レゲエ' }, description: { en: 'Offbeat rhythm, relaxed groove', ja: 'オフビートリズム、リラックスしたグルーブ' } },
 ] as const
 export function isMusicMoodId(value: string | null): value is MusicMoodId { return MUSIC_MOODS.some(mood => mood.id === value) }
 export function getMusicMood(id: MusicMoodId) { return MUSIC_MOODS.find(mood => mood.id === id) ?? MUSIC_MOODS[0] }
@@ -61,6 +71,16 @@ const MOODS: Record<MusicMoodId, MoodConfig> = {
   jazz: { keyRoot: -9, progression: [{ rootOffset: 0, triad: MAJOR_SEVENTH }, { rootOffset: 5, triad: MINOR_SEVENTH }, { rootOffset: 9, triad: MAJOR_SEVENTH }, { rootOffset: 2, triad: MINOR_SEVENTH }], chordSeconds: 3.5, octaveShift: -12, cutoffHz: 700, texture: 'none', volume: .35, waveform: 'triangle' },
   electronic: { keyRoot: -6, progression: [{ rootOffset: 0, triad: MAJOR_TRIAD }, { rootOffset: 4, triad: MAJOR_TRIAD }, { rootOffset: 7, triad: MINOR_TRIAD }, { rootOffset: 11, triad: DOMINANT_SEVENTH }], chordSeconds: 2, octaveShift: 0, cutoffHz: 1800, texture: 'arpeggio', volume: .3, waveform: 'sine' },
   classical: { keyRoot: -12, progression: [{ rootOffset: 0, triad: MINOR_TRIAD }, { rootOffset: 4, triad: MAJOR_TRIAD }, { rootOffset: 7, triad: MINOR_TRIAD }, { rootOffset: 3, triad: MAJOR_TRIAD }], chordSeconds: 4.5, octaveShift: -12, cutoffHz: 500, texture: 'none', volume: .3, waveform: 'sine' },
+  ambient: { keyRoot: -12, progression: [{ rootOffset: 0, triad: MAJOR_TRIAD }, { rootOffset: 4, triad: MAJOR_TRIAD }, { rootOffset: 7, triad: MINOR_TRIAD }, { rootOffset: 3, triad: MAJOR_TRIAD }], chordSeconds: 8, octaveShift: -12, cutoffHz: 400, texture: 'none', volume: .2, waveform: 'sine' },
+  hiphop: { keyRoot: 0, progression: [{ rootOffset: 0, triad: MINOR_TRIAD }, { rootOffset: 3, triad: MINOR_TRIAD }, { rootOffset: 7, triad: MINOR_TRIAD }, { rootOffset: 10, triad: MINOR_TRIAD }], chordSeconds: 2, octaveShift: 0, cutoffHz: 1500, texture: 'arpeggio', volume: .4, waveform: 'sine' },
+  rock: { keyRoot: 0, progression: [{ rootOffset: 0, triad: MINOR_TRIAD }, { rootOffset: 5, triad: MAJOR_TRIAD }, { rootOffset: 7, triad: MINOR_TRIAD }, { rootOffset: 3, triad: MAJOR_TRIAD }], chordSeconds: 2.5, octaveShift: 0, cutoffHz: 2200, texture: 'arpeggio', volume: .5, waveform: 'distortion' },
+  pop: { keyRoot: 0, progression: [{ rootOffset: 0, triad: MAJOR_TRIAD }, { rootOffset: 4, triad: MAJOR_TRIAD }, { rootOffset: 5, triad: MAJOR_TRIAD }, { rootOffset: 3, triad: MAJOR_TRIAD }], chordSeconds: 3, octaveShift: 0, cutoffHz: 2000, texture: 'arpeggio', volume: .35, waveform: 'sine' },
+  blues: { keyRoot: 0, progression: [{ rootOffset: 0, triad: MINOR_TRIAD }, { rootOffset: 3, triad: MINOR_TRIAD }, { rootOffset: 7, triad: MINOR_TRIAD }, { rootOffset: 10, triad: MINOR_TRIAD }, { rootOffset: 0, triad: MINOR_TRIAD }, { rootOffset: 4, triad: MINOR_TRIAD }, { rootOffset: 7, triad: MINOR_TRIAD }, { rootOffset: 10, triad: MINOR_TRIAD }], chordSeconds: 2, octaveShift: 0, cutoffHz: 1200, texture: 'none', volume: .4, waveform: 'triangle' },
+  folk: { keyRoot: -9, progression: [{ rootOffset: 0, triad: MAJOR_TRIAD }, { rootOffset: 5, triad: MAJOR_TRIAD }, { rootOffset: 7, triad: MINOR_TRIAD }], chordSeconds: 4, octaveShift: -12, cutoffHz: 1400, texture: 'none', volume: .35, waveform: 'triangle' },
+  metal: { keyRoot: 0, progression: [{ rootOffset: 0, triad: MINOR_TRIAD }, { rootOffset: 6, triad: MINOR_TRIAD }, { rootOffset: 7, triad: MINOR_TRIAD }], chordSeconds: 1.5, octaveShift: 0, cutoffHz: 3500, texture: 'none', volume: .55, waveform: 'sawtooth' },
+  rnb: { keyRoot: -3, progression: [{ rootOffset: 0, triad: MINOR_SEVENTH }, { rootOffset: 4, triad: MINOR_SEVENTH }, { rootOffset: 7, triad: MINOR_SEVENTH }, { rootOffset: 10, triad: MINOR_SEVENTH }], chordSeconds: 3, octaveShift: 0, cutoffHz: 1800, texture: 'arpeggio', volume: .38, waveform: 'triangle' },
+  country: { keyRoot: 0, progression: [{ rootOffset: 0, triad: MAJOR_TRIAD }, { rootOffset: 4, triad: MAJOR_TRIAD }, { rootOffset: 5, triad: MAJOR_TRIAD }, { rootOffset: 7, triad: MAJOR_TRIAD }], chordSeconds: 3.5, octaveShift: 0, cutoffHz: 2500, texture: 'none', volume: .4, waveform: 'triangle' },
+  reggae: { keyRoot: -4, progression: [{ rootOffset: 0, triad: MAJOR_TRIAD }, { rootOffset: 4, triad: MAJOR_TRIAD }, { rootOffset: 7, triad: MINOR_TRIAD }], chordSeconds: 3, octaveShift: -12, cutoffHz: 1600, texture: 'none', volume: .35, waveform: 'sine' },
 }
 
 // A single short, decaying note - used for the arpeggio layer so it reads as "plucked" rather
