@@ -3,6 +3,10 @@ export type VideoPatternId = 'cinematic' | 'dynamic' | 'minimal' | 'album' | 'so
 export type VideoFormatId = 'reel' | 'story' | 'feed-portrait' | 'square' | 'feed-landscape' | 'shorts' | 'tiktok' | 'tiktok-square' | 'youtube-video' | 'youtube-square'
 export type VideoQualityId = 'standard' | 'high' | 'ultra'
 export type Platform = 'instagram' | 'tiktok' | 'youtube'
+export type TransitionType = 'cut' | 'dissolve' | 'slide-left' | 'slide-right' | 'slide-up' | 'slide-down' | 'wipe-left' | 'wipe-right' | 'zoom-in' | 'zoom-out' | 'fade-black'
+export type ColorAdjustments = { brightness: number; contrast: number; saturation: number; hueRotate: number; temperature: number }
+export type BrandColors = { accent: string | null; textColor: string | null; bgColor: string | null }
+export type SubtitleConfig = { text: string; fontSize: number; fontFamily: string; color: string; bgOpacity: number; position: 'bottom' | 'top' | 'center' }
 export const PLATFORMS: readonly Platform[] = ['instagram', 'tiktok', 'youtube']
 
 export type LocalizedText = { en: string; ja: string }
@@ -57,9 +61,9 @@ export const VIDEO_FORMATS: readonly VideoFormat[] = [
 ] as const
 
 export const VIDEO_QUALITIES: readonly VideoQuality[] = [
-  { id: 'standard', name: { en: 'Standard', ja: '標準' }, fps: 30, bitsPerSecond: 16_000_000, scale: 1, description: { en: '1080p · balanced file size', ja: '1080p・標準ファイルサイズ' } },
-  { id: 'high', name: { en: 'High quality', ja: '高画質' }, fps: 60, bitsPerSecond: 42_000_000, scale: 1, description: { en: '1080p · 60fps · high bitrate', ja: '1080p・60fps・高ビットレート' } },
-  { id: 'ultra', name: { en: 'Ultra HD', ja: '最高画質' }, fps: 60, bitsPerSecond: 80_000_000, scale: 2, description: { en: '4K (2160p) · 60fps · maximum bitrate', ja: '4K（2160p）・60fps・最大ビットレート' } },
+  { id: 'standard', name: { en: 'Standard', ja: '標準' }, fps: 30, bitsPerSecond: 20_000_000, scale: 1, description: { en: '1080p · balanced file size', ja: '1080p・標準ファイルサイズ' } },
+  { id: 'high', name: { en: 'High quality', ja: '高画質' }, fps: 60, bitsPerSecond: 50_000_000, scale: 1, description: { en: '1080p · 60fps · high bitrate', ja: '1080p・60fps・高ビットレート' } },
+  { id: 'ultra', name: { en: 'Ultra HD', ja: '最高画質' }, fps: 60, bitsPerSecond: 100_000_000, scale: 2, description: { en: '4K (2160p) · 60fps · maximum bitrate', ja: '4K（2160p）・60fps・最大ビットレート' } },
 ] as const
 
 const clamp = (value: number, min = 0, max = 1) => Math.max(min, Math.min(value, max))
@@ -122,6 +126,24 @@ export function getFrameState(time: number, itemCount: number, secondsPerItem: n
   const index = Math.min(Math.floor(safeTime / secondsPerItem), itemCount - 1)
   return { index, progress: safeTime >= total ? 1 : (safeTime - index * secondsPerItem) / secondsPerItem }
 }
+
+export function getFrameStateWithDurations(time: number, durations: readonly number[]): FrameState {
+  if (durations.length === 0) return { index: 0, progress: 0 }
+  let accumulated = 0
+  for (let i = 0; i < durations.length; i++) {
+    const dur = Math.max(0.1, durations[i])
+    if (time < accumulated + dur || i === durations.length - 1) {
+      const localTime = Math.max(0, Math.min(time - accumulated, dur))
+      return { index: i, progress: dur > 0 ? localTime / dur : 0 }
+    }
+    accumulated += dur
+  }
+  return { index: durations.length - 1, progress: 1 }
+}
+
+export function totalDurationWithDurations(durations: readonly number[]): number {
+  return durations.reduce((sum, d) => sum + Math.max(0.1, d), 0)
+}
 export function moveItem<T>(items: readonly T[], from: number, to: number): T[] { const next = [...items]; if (from < 0 || from >= next.length || to < 0 || to >= next.length || from === to) return next; const [item] = next.splice(from, 1); next.splice(to, 0, item); return next }
 // With many photos, a short per-image duration makes the cuts feel like a flicker rather than a
 // story. Raise the floor a little as the count grows so adding photos can't make the video feel
@@ -155,3 +177,64 @@ export function watermarkRect(position: WatermarkPosition, frameWidth: number, f
   return { x, y, width, height }
 }
 export function nextFrameDelayMs(start: number, frameIndex: number, fps: number, now: number): number { return Math.max(0, start + (frameIndex * 1000) / fps - now) }
+
+export const TRANSITION_TYPES: readonly { id: TransitionType; name: LocalizedText }[] = [
+  { id: 'cut', name: { en: 'Cut', ja: 'カット' } },
+  { id: 'dissolve', name: { en: 'Dissolve', ja: 'ディゾルブ' } },
+  { id: 'slide-left', name: { en: 'Slide left', ja: '左スライド' } },
+  { id: 'slide-right', name: { en: 'Slide right', ja: '右スライド' } },
+  { id: 'slide-up', name: { en: 'Slide up', ja: '上スライド' } },
+  { id: 'slide-down', name: { en: 'Slide down', ja: '下スライド' } },
+  { id: 'wipe-left', name: { en: 'Wipe left', ja: '左ワイプ' } },
+  { id: 'wipe-right', name: { en: 'Wipe right', ja: '右ワイプ' } },
+  { id: 'zoom-in', name: { en: 'Zoom in', ja: 'ズームイン' } },
+  { id: 'zoom-out', name: { en: 'Zoom out', ja: 'ズームアウト' } },
+  { id: 'fade-black', name: { en: 'Fade to black', ja: 'ブラックフェード' } },
+] as const
+
+export const DEFAULT_COLOR_ADJUSTMENTS: ColorAdjustments = { brightness: 1, contrast: 1, saturation: 1, hueRotate: 0, temperature: 0 }
+export const DEFAULT_BRAND_COLORS: BrandColors = { accent: null, textColor: null, bgColor: null }
+
+export function buildColorFilter(adj: ColorAdjustments): string {
+  const parts: string[] = []
+  if (adj.brightness !== 1) parts.push(`brightness(${adj.brightness.toFixed(2)})`)
+  if (adj.contrast !== 1) parts.push(`contrast(${adj.contrast.toFixed(2)})`)
+  if (adj.saturation !== 1) parts.push(`saturate(${adj.saturation.toFixed(2)})`)
+  if (adj.hueRotate !== 0) parts.push(`hue-rotate(${adj.hueRotate}deg)`)
+  if (adj.temperature !== 0) {
+    const warmth = adj.temperature > 0 ? `sepia(${(adj.temperature * 0.3).toFixed(2)})` : `hue-rotate(${(adj.temperature * 0.5).toFixed(0)}deg)`
+    parts.push(warmth)
+  }
+  return parts.join(' ') || 'none'
+}
+
+export const GOOGLE_FONTS = [
+  { family: 'Noto Sans JP', weights: '400;500;700' },
+  { family: 'DM Sans', weights: '400;500;600;700' },
+  { family: 'Inter', weights: '400;500;600;700' },
+  { family: 'Poppins', weights: '400;500;600;700' },
+  { family: 'Playfair Display', weights: '400;500;600;700' },
+  { family: 'Bebas Neue', weights: '400' },
+  { family: 'Oswald', weights: '400;500;600;700' },
+  { family: 'Raleway', weights: '400;500;600;700' },
+  { family: 'Montserrat', weights: '400;500;600;700' },
+  { family: 'Lora', weights: '400;500;600;700' },
+  { family: 'Crimson Text', weights: '400;600;700' },
+  { family: 'Space Grotesk', weights: '400;500;600;700' },
+  { family: 'Bitter', weights: '400;500;600;700' },
+  { family: 'Rubik', weights: '400;500;600;700' },
+  { family: 'Cabin', weights: '400;500;600;700' },
+] as const
+
+export const FONT_FAMILY_OPTIONS = GOOGLE_FONTS.map(f => f.family)
+
+let fontsLoaded = false
+export function loadGoogleFonts() {
+  if (fontsLoaded) return
+  fontsLoaded = true
+  const families = GOOGLE_FONTS.map(f => `family=${f.family.replace(/ /g, '+')}:wght@${f.weights}`).join('&')
+  const link = document.createElement('link')
+  link.rel = 'stylesheet'
+  link.href = `https://fonts.googleapis.com/css2?${families}&display=swap`
+  document.head.appendChild(link)
+}

@@ -60,7 +60,7 @@ export async function renderMp4(options: { canvas: HTMLCanvasElement; fps: numbe
   output.addVideoTrack(videoSource, { frameRate: options.fps })
   // The whole (already trimmed/looped/faded - see audio.ts) buffer is handed to the encoder in one
   // shot rather than chunked per video frame, since AudioBufferSource takes a complete AudioBuffer.
-  const audioSource = options.audio ? new AudioBufferSource({ codec: options.audio.codec, bitrate: 128_000 }) : null
+  const audioSource = options.audio ? new AudioBufferSource({ codec: options.audio.codec, bitrate: 192_000 }) : null
   if (audioSource) output.addAudioTrack(audioSource)
   await output.start()
   if (audioSource && options.audio) await audioSource.add(options.audio.buffer)

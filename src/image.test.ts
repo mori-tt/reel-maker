@@ -20,7 +20,7 @@ describe('image normalization', () => {
     const jpeg = new Blob(['jpeg'], { type: 'image/jpeg' })
     const convert = vi.fn().mockResolvedValue(jpeg)
     await expect(normalizeImageFile(file, convert)).resolves.toBe(jpeg)
-    expect(convert).toHaveBeenCalledWith({ blob: file, type: 'image/jpeg', quality: .9 })
+    expect(convert).toHaveBeenCalledWith({ blob: file, type: 'image/jpeg', quality: .95 })
   })
 
   it('includes the filename and decoder error when conversion fails', async () => {

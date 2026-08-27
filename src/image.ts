@@ -10,7 +10,7 @@ export type HeicConverter = (options: {
 export async function normalizeImageFile(file: File, convert: HeicConverter = heicTo): Promise<Blob> {
   if (!isHeicFile(file)) return file
   try {
-    const converted = await convert({ blob: file, type: 'image/jpeg', quality: .9 })
+    const converted = await convert({ blob: file, type: 'image/jpeg', quality: .95 })
     if (!(converted instanceof Blob) || converted.size === 0) throw new Error('変換後の画像が空です。')
     return converted
   } catch (error) {

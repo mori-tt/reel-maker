@@ -7,8 +7,8 @@ import type { ChromeAiAvailability } from './chrome-ai'
 import { analyzeAutoEnhance, normalizeImageFile } from './image'
 import { getInitialLanguage, translate } from './i18n'
 import type { Language } from './i18n'
-import { PLATFORMS, VIDEO_FORMATS, VIDEO_PATTERNS, VIDEO_QUALITIES, getFrameState, getPatternFrame, getVideoFormat, getVideoPattern, getVideoQuality, isVideoFormatId, isVideoPatternId, isVideoQualityId, maxSecondsPerImage, minSecondsPerImage, moveItem, watermarkRect } from './reel'
-import type { PatternFrame, Platform, VideoFormatId, VideoPattern, VideoPatternId, VideoQualityId, WatermarkPosition } from './reel'
+import { PLATFORMS, VIDEO_FORMATS, VIDEO_PATTERNS, VIDEO_QUALITIES, TRANSITION_TYPES, GOOGLE_FONTS, FONT_FAMILY_OPTIONS, DEFAULT_COLOR_ADJUSTMENTS, DEFAULT_BRAND_COLORS, buildColorFilter, loadGoogleFonts, getFrameState, getFrameStateWithDurations, totalDurationWithDurations, getPatternFrame, getVideoFormat, getVideoPattern, getVideoQuality, isVideoFormatId, isVideoPatternId, isVideoQualityId, maxSecondsPerImage, minSecondsPerImage, moveItem, watermarkRect } from './reel'
+import type { PatternFrame, Platform, VideoFormatId, VideoPattern, VideoPatternId, VideoQualityId, WatermarkPosition, TransitionType, ColorAdjustments, BrandColors, SubtitleConfig } from './reel'
 import { decodeAudioFile, fitAudioBuffer } from './audio'
 import { audioBufferToWavBlob, generateMusicFile, MUSIC_MOODS, synthesizeMusic } from './generated-music'
 import type { MusicMoodId } from './generated-music'
@@ -25,7 +25,7 @@ type TextPosition = 'upper' | 'center' | 'lower'
 // original holds the pre-AI-edit version of {blob, url, image} whenever a Gemini edit has been
 // applied (see editSlideWithGemini) - null otherwise. Keeps an AI edit from being a one-way,
 // unrecoverable change: "Revert to original" just swaps these back.
-type Slide = { id: string; name: string; url: string; image: HTMLImageElement; blob: Blob; title: string; cta: string; showText: boolean; textPosition: TextPosition; autoEnhanceFilter: string; autoEnhance: boolean; focalX: number; focalY: number; patternOverride: VideoPatternId | null; original: { blob: Blob; url: string; image: HTMLImageElement } | null }
+type Slide = { id: string; name: string; url: string; image: HTMLImageElement; blob: Blob; title: string; cta: string; showText: boolean; textPosition: TextPosition; autoEnhanceFilter: string; autoEnhance: boolean; focalX: number; focalY: number; patternOverride: VideoPatternId | null; original: { blob: Blob; url: string; image: HTMLImageElement } | null; duration: number | null; fontFamily: string | null; colorAdjustments: ColorAdjustments | null; transition: TransitionType | null; subtitle: SubtitleConfig | null }
 // focalX/focalY (0-1) pick which part of the cropped-to-cover image sits at the frame's center,
 // defaulting to .5/.5 (today's always-centered behavior). Clamped so the crop window never reveals
 // empty space beyond the image's edges.
@@ -88,7 +88,7 @@ function decorate(ctx: CanvasRenderingContext2D, pattern: VideoPattern, frame: P
 // 'outline' (street/graffiti) strokes a dark border around the fill instead of a soft shadow;
 // 'elegant' (luxury) adds letter-spacing for a more refined mark - both restored automatically by
 // the ctx.save()/restore() around every call site, so neither needs to reset itself afterward.
-function drawSlideText(ctx: CanvasRenderingContext2D & { letterSpacing?: string }, pattern: VideoPattern, title: string, cta: string, width: number, height: number) {
+function drawSlideText(ctx: CanvasRenderingContext2D & { letterSpacing?: string }, pattern: VideoPattern, title: string, cta: string, width: number, height: number, fontFamily: string = 'Noto Sans JP', brandColors: BrandColors = DEFAULT_BRAND_COLORS) {
   const style = pattern.textStyle
   const align = style === 'left' ? 'left' : 'center'; const originX = align === 'left' ? -width * .38 : 0
   ctx.textAlign = align
@@ -96,20 +96,20 @@ function drawSlideText(ctx: CanvasRenderingContext2D & { letterSpacing?: string 
   const titleSize = style === 'minimal' ? width * .058 : style === 'elegant' ? width * .066 : width * .073
   const titleWeight = style === 'minimal' ? 500 : style === 'elegant' ? 600 : 700
   if (style === 'upper') { ctx.shadowColor = '#0b0910'; ctx.shadowBlur = 0; ctx.shadowOffsetX = width * .007; ctx.shadowOffsetY = width * .007 }
-  else if (style === 'glow') { ctx.shadowColor = pattern.accent; ctx.shadowBlur = width * .05 }
+  else if (style === 'glow') { ctx.shadowColor = brandColors.accent || pattern.accent; ctx.shadowBlur = width * .05 }
   else if (style === 'outline') { ctx.shadowColor = 'transparent'; ctx.shadowBlur = 0 }
   else if (style === 'elegant') { ctx.shadowColor = 'rgba(0,0,0,.55)'; ctx.shadowBlur = width * .012; ctx.letterSpacing = `${Math.round(width * .012)}px` }
   else { ctx.shadowColor = 'rgba(0,0,0,.8)'; ctx.shadowBlur = width * .018 }
-  ctx.font = `${titleWeight} ${Math.round(titleSize)}px system-ui, sans-serif`
+  ctx.font = `${titleWeight} ${Math.round(titleSize)}px '${fontFamily}', system-ui, sans-serif`
   if (style === 'outline') { ctx.lineJoin = 'round'; ctx.lineWidth = width * .014; ctx.strokeStyle = '#0d0c12'; ctx.strokeText(displayTitle, originX, 0, width * .82) }
-  ctx.fillStyle = '#fff'
+  ctx.fillStyle = brandColors.textColor || '#fff'
   ctx.fillText(displayTitle, originX, 0, width * .82)
   if (cta) {
     ctx.shadowOffsetX = 0; ctx.shadowOffsetY = 0
     const displayCta = (style === 'upper' || style === 'outline') ? cta.toUpperCase() : cta
-    ctx.font = `600 ${Math.round(width * .03)}px system-ui, sans-serif`
+    ctx.font = `600 ${Math.round(width * .03)}px '${fontFamily}', system-ui, sans-serif`
     if (style === 'outline') { ctx.lineWidth = width * .008; ctx.strokeStyle = '#0d0c12'; ctx.strokeText(displayCta, originX, height * .07, width * .72) }
-    ctx.fillStyle = pattern.accent
+    ctx.fillStyle = brandColors.accent || pattern.accent
     ctx.fillText(displayCta, originX, height * .07, width * .72)
   }
 }
@@ -123,24 +123,66 @@ function drawWatermark(ctx: CanvasRenderingContext2D, watermark: WatermarkConfig
   const rect = watermarkRect(watermark.position, width, height, ratio, watermark.scale)
   ctx.save(); ctx.globalAlpha = watermark.opacity; ctx.drawImage(watermark.image, rect.x, rect.y, rect.width, rect.height); ctx.restore()
 }
-function drawFrame(ctx: CanvasRenderingContext2D, slide: Slide, progress: number, title: string, cta: string, patternId: VideoPatternId, formatId: VideoFormatId, index: number, durationSeconds: number, watermark: WatermarkConfig | null) {
+function drawSubtitle(ctx: CanvasRenderingContext2D, config: SubtitleConfig, width: number, height: number) {
+  if (!config.text) return
+  const fontSize = Math.round(width * (config.fontSize / 100))
+  const fontFamily = `'${config.fontFamily}', system-ui, sans-serif`
+  const lines = config.text.split('\n')
+  const lineHeight = fontSize * 1.4
+  const totalHeight = lines.length * lineHeight
+  const padding = fontSize * 0.5
+  const maxWidth = width * 0.85
+  let baseY = config.position === 'top' ? height * 0.08 : config.position === 'center' ? (height - totalHeight) / 2 : height * 0.88 - totalHeight
+  ctx.save()
+  ctx.font = `500 ${fontSize}px ${fontFamily}`
+  ctx.textAlign = 'center'
+  ctx.textBaseline = 'top'
+  for (let i = 0; i < lines.length; i++) {
+    const y = baseY + i * lineHeight
+    const textWidth = ctx.measureText(lines[i]).width
+    const bgX = (width - textWidth) / 2 - padding
+    const bgW = textWidth + padding * 2
+    if (config.bgOpacity > 0) {
+      ctx.fillStyle = `rgba(0,0,0,${config.bgOpacity})`
+      ctx.beginPath()
+      const r = fontSize * 0.2
+      ctx.roundRect(bgX, y - padding * 0.5, bgW, lineHeight, r)
+      ctx.fill()
+    }
+    ctx.fillStyle = '#000'
+    ctx.fillText(lines[i], width / 2 + 1, y + 1)
+    ctx.fillStyle = config.color
+    ctx.fillText(lines[i], width / 2, y)
+  }
+  ctx.restore()
+}
+function drawFrame(ctx: CanvasRenderingContext2D, slide: Slide, progress: number, title: string, cta: string, patternId: VideoPatternId, formatId: VideoFormatId, index: number, durationSeconds: number, watermark: WatermarkConfig | null, globalFont: string, globalColorAdj: ColorAdjustments, brandColors: BrandColors, subtitleConfig: SubtitleConfig | null) {
   const { width, height } = ctx.canvas; const frame = getPatternFrame(patternId, progress, index, durationSeconds); const pattern = getVideoPattern(patternId); const format = getVideoFormat(formatId)
-  ctx.fillStyle = '#09080d'; ctx.fillRect(0, 0, width, height); ctx.save(); ctx.globalAlpha = frame.imageOpacity; ctx.filter = slide.autoEnhance ? `${pattern.filter} ${slide.autoEnhanceFilter}` : pattern.filter; ctx.translate(width / 2 + width * frame.translateX / 100, height / 2 + height * frame.translateY / 100); ctx.rotate(frame.rotation * Math.PI / 180); ctx.translate(-width / 2, -height / 2); cover(ctx, slide.image, width, height, frame.scale, slide.focalX, slide.focalY); ctx.restore()
+  const bgColor = brandColors.bgColor || '#09080d'
+  ctx.fillStyle = bgColor; ctx.fillRect(0, 0, width, height)
+  const slideColorAdj = slide.colorAdjustments || globalColorAdj
+  const combinedFilter = [slide.autoEnhance ? `${pattern.filter} ${slide.autoEnhanceFilter}` : pattern.filter, buildColorFilter(slideColorAdj)].filter(f => f && f !== 'none').join(' ')
+  ctx.save(); ctx.globalAlpha = frame.imageOpacity; ctx.filter = combinedFilter; ctx.translate(width / 2 + width * frame.translateX / 100, height / 2 + height * frame.translateY / 100); ctx.rotate(frame.rotation * Math.PI / 180); ctx.translate(-width / 2, -height / 2); cover(ctx, slide.image, width, height, frame.scale, slide.focalX, slide.focalY); ctx.restore()
   decorate(ctx, pattern, frame, width, height, progress)
   const gradient = ctx.createLinearGradient(0, height * .36, 0, height); gradient.addColorStop(0, 'rgba(8,7,13,0)'); gradient.addColorStop(1, `rgba(8,7,13,${frame.overlayOpacity})`); ctx.fillStyle = gradient; ctx.fillRect(0, 0, width, height)
   if (frame.flashOpacity > 0) { ctx.save(); ctx.globalAlpha = frame.flashOpacity; ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, width, height); ctx.restore() }
-  if (slide.showText) { const positionRatio = slide.textPosition === 'upper' ? format.safeTop + .18 : slide.textPosition === 'center' ? .54 : 1 - format.safeBottom - .06; ctx.save(); ctx.globalAlpha = frame.textOpacity; const baseline = height * positionRatio; ctx.translate(width / 2, baseline + frame.textTranslateY * height / 430); ctx.scale(frame.textScale, frame.textScale); drawSlideText(ctx, pattern, title, cta, width, height); ctx.restore() }
+  if (slide.showText) { const positionRatio = slide.textPosition === 'upper' ? format.safeTop + .18 : slide.textPosition === 'center' ? .54 : 1 - format.safeBottom - .06; ctx.save(); ctx.globalAlpha = frame.textOpacity; const baseline = height * positionRatio; ctx.translate(width / 2, baseline + frame.textTranslateY * height / 430); ctx.scale(frame.textScale, frame.textScale); drawSlideText(ctx, pattern, title, cta, width, height, slide.fontFamily || globalFont, brandColors); ctx.restore() }
+  if (subtitleConfig?.text) { drawSubtitle(ctx, subtitleConfig, width, height) }
   drawWatermark(ctx, watermark, width, height)
 }
 // A clean, fully-opaque single frame for static image / carousel export - the pattern's color
 // grade and decoration still apply (so a static post still matches the chosen look), but without
 // any of the fade-in/out, flash, or zoom-in-progress that only make sense mid-video.
-function drawStaticFrame(ctx: CanvasRenderingContext2D, slide: Slide, title: string, cta: string, patternId: VideoPatternId, formatId: VideoFormatId, index: number, watermark: WatermarkConfig | null) {
+function drawStaticFrame(ctx: CanvasRenderingContext2D, slide: Slide, title: string, cta: string, patternId: VideoPatternId, formatId: VideoFormatId, index: number, watermark: WatermarkConfig | null, globalFont: string, globalColorAdj: ColorAdjustments, brandColors: BrandColors, subtitleConfig: SubtitleConfig | null) {
   const { width, height } = ctx.canvas; const frame = getPatternFrame(patternId, .5, index); const pattern = getVideoPattern(patternId); const format = getVideoFormat(formatId)
-  ctx.fillStyle = '#09080d'; ctx.fillRect(0, 0, width, height); ctx.save(); ctx.filter = slide.autoEnhance ? `${pattern.filter} ${slide.autoEnhanceFilter}` : pattern.filter; cover(ctx, slide.image, width, height, 1, slide.focalX, slide.focalY); ctx.restore()
+  const bgColor = brandColors.bgColor || '#09080d'
+  const slideColorAdj = slide.colorAdjustments || globalColorAdj
+  const combinedFilter = [slide.autoEnhance ? `${pattern.filter} ${slide.autoEnhanceFilter}` : pattern.filter, buildColorFilter(slideColorAdj)].filter(f => f && f !== 'none').join(' ')
+  ctx.fillStyle = bgColor; ctx.fillRect(0, 0, width, height); ctx.save(); ctx.filter = combinedFilter; cover(ctx, slide.image, width, height, 1, slide.focalX, slide.focalY); ctx.restore()
   decorate(ctx, pattern, frame, width, height, .5)
   const gradient = ctx.createLinearGradient(0, height * .36, 0, height); gradient.addColorStop(0, 'rgba(8,7,13,0)'); gradient.addColorStop(1, `rgba(8,7,13,${frame.overlayOpacity})`); ctx.fillStyle = gradient; ctx.fillRect(0, 0, width, height)
-  if (slide.showText) { const positionRatio = slide.textPosition === 'upper' ? format.safeTop + .18 : slide.textPosition === 'center' ? .54 : 1 - format.safeBottom - .06; ctx.save(); const baseline = height * positionRatio; ctx.translate(width / 2, baseline); drawSlideText(ctx, pattern, title, cta, width, height); ctx.restore() }
+  if (slide.showText) { const positionRatio = slide.textPosition === 'upper' ? format.safeTop + .18 : slide.textPosition === 'center' ? .54 : 1 - format.safeBottom - .06; ctx.save(); const baseline = height * positionRatio; ctx.translate(width / 2, baseline); drawSlideText(ctx, pattern, title, cta, width, height, slide.fontFamily || globalFont, brandColors); ctx.restore() }
+  if (subtitleConfig?.text) { drawSubtitle(ctx, subtitleConfig, width, height) }
   drawWatermark(ctx, watermark, width, height)
 }
 
@@ -181,9 +223,19 @@ export default function App() {
   const [styleDetectingId, setStyleDetectingId] = useState<string | null>(null); const [projectStyleDetecting, setProjectStyleDetecting] = useState(false)
   const [exportedFile, setExportedFile] = useState<File | null>(null)
   const [singleExportingId, setSingleExportingId] = useState<string | null>(null)
+  const [globalFontFamily, setGlobalFontFamily] = useState<string>(() => localStorage.getItem('globalFont') || 'Noto Sans JP')
+  const [globalColorAdjustments, setGlobalColorAdjustments] = useState<ColorAdjustments>(() => { try { const saved = localStorage.getItem('globalColorAdj'); return saved ? JSON.parse(saved) : DEFAULT_COLOR_ADJUSTMENTS } catch { return DEFAULT_COLOR_ADJUSTMENTS } })
+  const [globalTransition, setGlobalTransition] = useState<TransitionType>(() => (localStorage.getItem('globalTransition') as TransitionType) || 'cut')
+  const [brandColors, setBrandColors] = useState<BrandColors>(() => { try { const saved = localStorage.getItem('brandColors'); return saved ? JSON.parse(saved) : DEFAULT_BRAND_COLORS } catch { return DEFAULT_BRAND_COLORS } })
+  const [subtitleEnabled, setSubtitleEnabled] = useState(false)
+  const [globalSubtitle, setGlobalSubtitle] = useState<SubtitleConfig>({ text: '', fontSize: 4, fontFamily: 'Noto Sans JP', color: '#ffffff', bgOpacity: 0.6, position: 'bottom' })
   const slidesRef = useRef<Slide[]>([]); const raf = useRef(0); const startedAt = useRef(0); const inputRef = useRef<HTMLInputElement>(null)
   const durationFloor = minSecondsPerImage(slides.length); const durationCeiling = maxSecondsPerImage(slides.length)
-  const total = slides.length * seconds; const frame = getFrameState(time, slides.length, seconds); const pattern = getVideoPattern(patternId); const format = getVideoFormat(formatId); const quality = getVideoQuality(qualityId)
+  const slideDurations = slides.map(s => s.duration ?? seconds)
+  const hasCustomDurations = slides.some(s => s.duration !== null)
+  const total = hasCustomDurations ? totalDurationWithDurations(slideDurations) : slides.length * seconds
+  const frame = hasCustomDurations ? getFrameStateWithDurations(time, slideDurations) : getFrameState(time, slides.length, seconds)
+  const pattern = getVideoPattern(patternId); const format = getVideoFormat(formatId); const quality = getVideoQuality(qualityId)
   // The slide currently on screen in the preview may carry its own pattern override; everything
   // about how *that frame* looks (motion, color grade, decoration, text style) should follow the
   // effective pattern below, while the pattern picker section further down still reflects and
@@ -191,7 +243,8 @@ export default function App() {
   const activeSlide = slides[frame.index] as Slide | undefined
   const effectivePatternId = activeSlide?.patternOverride ?? patternId
   const effectivePattern = getVideoPattern(effectivePatternId)
-  const patternFrame = getPatternFrame(effectivePatternId, frame.progress, frame.index, seconds)
+  const currentSlideDuration = activeSlide?.duration ?? seconds
+  const patternFrame = getPatternFrame(effectivePatternId, frame.progress, frame.index, currentSlideDuration)
   const patternName = pattern.name[language]; const formatName = format.name[language]; const qualityName = quality.name[language]
   // Whether the currently-selected provider is actually usable right now, and - if not - why, so
   // every AI-consuming button (existing copy/caption/focal-point ones, and the style-suggestion
@@ -233,7 +286,7 @@ export default function App() {
   // actually usable for the one now selected. Each provider needs its own explicit check.
   useEffect(() => { setOllamaConnected(false); setOllamaModels([]) }, [aiProvider])
   useEffect(() => { if (!playing || !total) return; startedAt.current = performance.now() - time * 1000; const tick = (now: number) => { const next = (now - startedAt.current) / 1000; if (next >= total) { setTime(0); setPlaying(false); return } setTime(next); raf.current = requestAnimationFrame(tick) }; raf.current = requestAnimationFrame(tick); return () => cancelAnimationFrame(raf.current) }, [playing, total])
-  const addImages = async (event: ChangeEvent<HTMLInputElement>) => { const files = Array.from(event.target.files ?? []).filter(file => file.type.startsWith('image/') || isHeicFile(file)); if (!files.length) return; setLoadingImages(true); setNotice(''); try { const loaded = await Promise.all(files.map(async file => { const blob = await normalizeImageFile(file); return new Promise<Slide>((resolve, reject) => { const url = URL.createObjectURL(blob); const image = new Image(); image.onload = () => resolve({ id: crypto.randomUUID(), name: file.name, url, image, blob, title: '', cta: '', showText: false, textPosition: 'lower', autoEnhanceFilter: analyzeAutoEnhance(image), autoEnhance: false, focalX: .5, focalY: .5, patternOverride: null, original: null }); image.onerror = () => { URL.revokeObjectURL(url); reject(new Error(`${file.name}: ${t('imageReadError')}`)) }; image.src = url }) })); setSlides(current => [...current, ...loaded]) } catch (error) { setNotice(error instanceof Error ? error.message : t('imageConvertError')) } finally { setLoadingImages(false); event.target.value = '' } }
+  const addImages = async (event: ChangeEvent<HTMLInputElement>) => { const files = Array.from(event.target.files ?? []).filter(file => file.type.startsWith('image/') || isHeicFile(file)); if (!files.length) return; setLoadingImages(true); setNotice(''); try { const loaded = await Promise.all(files.map(async file => { const blob = await normalizeImageFile(file); return new Promise<Slide>((resolve, reject) => { const url = URL.createObjectURL(blob); const image = new Image(); image.onload = () => resolve({ id: crypto.randomUUID(), name: file.name, url, image, blob, title: '', cta: '', showText: false, textPosition: 'lower', autoEnhanceFilter: analyzeAutoEnhance(image), autoEnhance: false, focalX: .5, focalY: .5, patternOverride: null, original: null, duration: null, fontFamily: null, colorAdjustments: null, transition: null, subtitle: null }); image.onerror = () => { URL.revokeObjectURL(url); reject(new Error(`${file.name}: ${t('imageReadError')}`)) }; image.src = url }) })); setSlides(current => [...current, ...loaded]) } catch (error) { setNotice(error instanceof Error ? error.message : t('imageConvertError')) } finally { setLoadingImages(false); event.target.value = '' } }
   const remove = (index: number) => setSlides(current => { URL.revokeObjectURL(current[index].url); if (current[index].original) URL.revokeObjectURL(current[index].original.url); return current.filter((_, i) => i !== index) })
   const updateSlide = (index: number, patch: Partial<Pick<Slide, 'title' | 'cta' | 'showText' | 'textPosition' | 'autoEnhance' | 'focalX' | 'focalY' | 'patternOverride'>>) => setSlides(current => current.map((slide, i) => i === index ? { ...slide, ...patch } : slide))
   const clearSlideCopy = (index: number) => updateSlide(index, { title: '', cta: '', showText: false })
@@ -350,7 +403,7 @@ export default function App() {
   // Renders the video and hands it to the <video> review player below (see previewVideoUrl) rather
   // than downloading it immediately - so a render that came out wrong (bad crop, no audio, etc.)
   // doesn't quietly land in the downloads folder before anyone's actually watched it.
-  const exportVideo = async () => { if (!slides.length) return; setExporting(true); setExportedFile(null); try { const canvas = document.createElement('canvas'); canvas.width = format.width * quality.scale; canvas.height = format.height * quality.scale; const draw = (ctx: CanvasRenderingContext2D, elapsed: number) => { const state = getFrameState(elapsed, slides.length, seconds); const slide = slides[state.index]; drawFrame(ctx, slide, state.progress, slide.title || title, slide.cta || cta, slide.patternOverride ?? patternId, formatId, state.index, seconds, watermarkConfig) }; let lastPreview = -1; const onProgress = (elapsed: number) => { if (elapsed - lastPreview >= .1) { setTime(elapsed); lastPreview = elapsed } }; const codec = await pickVideoCodec(canvas.width, canvas.height, quality.bitsPerSecond); const audio = codec ? await prepareBgm(total, 48000, 2).catch(() => null) : null; const result = codec ? { blob: await renderMp4({ canvas, fps: quality.fps, bitrate: quality.bitsPerSecond, durationSeconds: total, codec, draw, onProgress, audio: audio ?? undefined }), extension: 'mp4' } : 'MediaRecorder' in window ? { blob: await renderWebm({ canvas, fps: quality.fps, bitrate: quality.bitsPerSecond, durationSeconds: total, draw, onProgress }), extension: 'webm' } : null; if (!result) return; const fileName = `${format.fileName}.${result.extension}`; setTime(0); setPreviewVideoUrl(URL.createObjectURL(result.blob)); setExportedFile(new File([result.blob], fileName, { type: result.blob.type })) } finally { setExporting(false) } }
+  const exportVideo = async () => { if (!slides.length) return; setExporting(true); setExportedFile(null); try { const canvas = document.createElement('canvas'); canvas.width = format.width * quality.scale; canvas.height = format.height * quality.scale; const subtitle = subtitleEnabled ? globalSubtitle : null; const draw = (ctx: CanvasRenderingContext2D, elapsed: number) => { const state = hasCustomDurations ? getFrameStateWithDurations(elapsed, slideDurations) : getFrameState(elapsed, slides.length, seconds); const slide = slides[state.index]; const dur = slide.duration ?? seconds; drawFrame(ctx, slide, state.progress, slide.title || title, slide.cta || cta, slide.patternOverride ?? patternId, formatId, state.index, dur, watermarkConfig, globalFontFamily, globalColorAdjustments, brandColors, subtitle) }; let lastPreview = -1; const onProgress = (elapsed: number) => { if (elapsed - lastPreview >= .1) { setTime(elapsed); lastPreview = elapsed } }; const codec = await pickVideoCodec(canvas.width, canvas.height, quality.bitsPerSecond); const audio = codec ? await prepareBgm(total, 48000, 2).catch(() => null) : null; const result = codec ? { blob: await renderMp4({ canvas, fps: quality.fps, bitrate: quality.bitsPerSecond, durationSeconds: total, codec, draw, onProgress, audio: audio ?? undefined }), extension: 'mp4' } : 'MediaRecorder' in window ? { blob: await renderWebm({ canvas, fps: quality.fps, bitrate: quality.bitsPerSecond, durationSeconds: total, draw, onProgress }), extension: 'webm' } : null; if (!result) return; const fileName = `${format.fileName}.${result.extension}`; setTime(0); setPreviewVideoUrl(URL.createObjectURL(result.blob)); setExportedFile(new File([result.blob], fileName, { type: result.blob.type })) } finally { setExporting(false) } }
   // The actual download, deferred until the reviewer taps it in the player below. Reuses the same
   // blob URL already backing the <video> instead of minting a second one for the same bytes.
   const downloadVideo = () => { if (!previewVideoUrl || !exportedFile) return; const link = document.createElement('a'); link.href = previewVideoUrl; link.download = exportedFile.name; link.click() }
@@ -365,10 +418,10 @@ export default function App() {
   // video - same pattern color grade/decoration/text, frozen at a clean, fully-opaque moment.
   // Downloads land one at a time with a short gap between them so browsers don't treat the burst
   // of triggered downloads as something to block.
-  const exportImages = async () => { if (!slides.length) return; setExportingImages(true); try { const canvas = document.createElement('canvas'); canvas.width = format.width; canvas.height = format.height; const ctx = canvas.getContext('2d'); if (!ctx) return; ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high'; for (let index = 0; index < slides.length; index++) { const slide = slides[index]; drawStaticFrame(ctx, slide, slide.title || title, slide.cta || cta, slide.patternOverride ?? patternId, formatId, index, watermarkConfig); const blob = await new Promise<Blob | null>(resolve => canvas.toBlob(resolve, 'image/jpeg', .92)); if (!blob) continue; const url = URL.createObjectURL(blob); const link = document.createElement('a'); link.href = url; link.download = `${format.fileName}-${String(index + 1).padStart(2, '0')}.jpg`; link.click(); setTimeout(() => URL.revokeObjectURL(url), 4000); if (index < slides.length - 1) await new Promise(resolve => setTimeout(resolve, 350)) } } finally { setExportingImages(false) } }
+  const exportImages = async () => { if (!slides.length) return; setExportingImages(true); try { const canvas = document.createElement('canvas'); canvas.width = format.width; canvas.height = format.height; const ctx = canvas.getContext('2d'); if (!ctx) return; ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high'; const subtitle = subtitleEnabled ? globalSubtitle : null; for (let index = 0; index < slides.length; index++) { const slide = slides[index]; drawStaticFrame(ctx, slide, slide.title || title, slide.cta || cta, slide.patternOverride ?? patternId, formatId, index, watermarkConfig, globalFontFamily, globalColorAdjustments, brandColors, subtitle); const blob = await new Promise<Blob | null>(resolve => canvas.toBlob(resolve, 'image/jpeg', .95)); if (!blob) continue; const url = URL.createObjectURL(blob); const link = document.createElement('a'); link.href = url; link.download = `${format.fileName}-${String(index + 1).padStart(2, '0')}.jpg`; link.click(); setTimeout(() => URL.revokeObjectURL(url), 4000); if (index < slides.length - 1) await new Promise(resolve => setTimeout(resolve, 350)) } } finally { setExportingImages(false) } }
   // Exports just the one slide, at its own effective pattern (override or project default) - for
   // when a single photo needs its own post rather than being part of the carousel/video batch.
-  const exportSingleImage = async (index: number) => { const slide = slides[index]; if (!slide) return; setSingleExportingId(slide.id); try { const canvas = document.createElement('canvas'); canvas.width = format.width; canvas.height = format.height; const ctx = canvas.getContext('2d'); if (!ctx) return; ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high'; drawStaticFrame(ctx, slide, slide.title || title, slide.cta || cta, slide.patternOverride ?? patternId, formatId, index, watermarkConfig); const blob = await new Promise<Blob | null>(resolve => canvas.toBlob(resolve, 'image/jpeg', .92)); if (!blob) return; const url = URL.createObjectURL(blob); const link = document.createElement('a'); link.href = url; link.download = `${format.fileName}-${String(index + 1).padStart(2, '0')}.jpg`; link.click(); setTimeout(() => URL.revokeObjectURL(url), 4000) } finally { setSingleExportingId(null) } }
+  const exportSingleImage = async (index: number) => { const slide = slides[index]; if (!slide) return; setSingleExportingId(slide.id); try { const canvas = document.createElement('canvas'); canvas.width = format.width; canvas.height = format.height; const ctx = canvas.getContext('2d'); if (!ctx) return; ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high'; const subtitle = subtitleEnabled ? globalSubtitle : null; drawStaticFrame(ctx, slide, slide.title || title, slide.cta || cta, slide.patternOverride ?? patternId, formatId, index, watermarkConfig, globalFontFamily, globalColorAdjustments, brandColors, subtitle); const blob = await new Promise<Blob | null>(resolve => canvas.toBlob(resolve, 'image/jpeg', .95)); if (!blob) return; const url = URL.createObjectURL(blob); const link = document.createElement('a'); link.href = url; link.download = `${format.fileName}-${String(index + 1).padStart(2, '0')}.jpg`; link.click(); setTimeout(() => URL.revokeObjectURL(url), 4000) } finally { setSingleExportingId(null) } }
   const styleVars = { '--pattern-accent': effectivePattern.accent, '--preview-ratio': `${format.width}/${format.height}`, '--safe-top': `${format.safeTop * 100}%`, '--safe-bottom': `${format.safeBottom * 100}%` } as CSSProperties
   return <div className="app-shell"><header><div className="brand"><span className="brand-mark">F</span><span>Frameflow</span></div><div className="header-actions"><span className="eyebrow">MULTI-FORMAT VIDEO STUDIO</span><div className="language-switch" role="group" aria-label={t('language')}><span>{t('language')}</span><button className={language==='en'?'active':''} aria-pressed={language==='en'} onClick={()=>changeLanguage('en')}>EN</button><button className={language==='ja'?'active':''} aria-pressed={language==='ja'} onClick={()=>changeLanguage('ja')}>日本語</button></div></div></header><main><section className="intro"><p className="kicker">IMAGES TO MOTION</p><h1>{language==='en'?<>Turn photos into <em>moving stories.</em></>:<>写真から、<em>動く物語</em>を。</>}</h1><p>{language==='en'?'Create polished Reels, Stories, posts and Shorts with format-aware high-quality settings.':'リール、ストーリー、フィード、Shortsを用途別の高品質設定で仕上げます。'}</p></section><div className="workspace"><section className="editor panel">
     <div className="section-head"><div><span>01</span><h2>{t('buildStory')}</h2></div><button className="add-small" onClick={() => inputRef.current?.click()}>＋ {t('addImages')}</button></div><input ref={inputRef} type="file" accept="image/*,.heic,.heif" multiple hidden onChange={addImages}/>{notice && <p className="notice" role="alert">{notice}</p>}
