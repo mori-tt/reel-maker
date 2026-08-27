@@ -1,4 +1,3 @@
-import { heicTo } from 'heic-to'
 import { isHeicFile } from './ai'
 
 export type HeicConverter = (options: {
@@ -7,10 +6,16 @@ export type HeicConverter = (options: {
   quality: number
 }) => Promise<Blob>
 
-export async function normalizeImageFile(file: File, convert: HeicConverter = heicTo): Promise<Blob> {
+async function defaultHeicConverter(options: Parameters<HeicConverter>[0]) {
+  const { heicTo } = await import('heic-to')
+  return heicTo(options)
+}
+
+export async function normalizeImageFile(file: File, convert?: HeicConverter): Promise<Blob> {
   if (!isHeicFile(file)) return file
+  const heicTo = convert ?? defaultHeicConverter
   try {
-    const converted = await convert({ blob: file, type: 'image/jpeg', quality: .95 })
+    const converted = await heicTo({ blob: file, type: 'image/jpeg', quality: .95 })
     if (!(converted instanceof Blob) || converted.size === 0) throw new Error('変換後の画像が空です。')
     return converted
   } catch (error) {

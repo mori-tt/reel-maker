@@ -19,7 +19,7 @@ export const PURPOSES: readonly { id: PurposeId; name: { en: string; ja: string 
   { id: 'thumbnail', name: { en: 'Video Thumbnail', ja: 'サムネイル' }, description: { en: '16:9 thumbnail for videos', ja: '16:9・動画サムネイル' } },
   { id: 'cover', name: { en: 'Video Cover', ja: '動画カバー' }, description: { en: '16:9 cover image for videos', ja: '16:9・動画カバー画像' } },
 ] as const
-export const StillImagePURPOSES: readonly { id: PurposeId; name: { en: string; ja: string }; description: { en: string; ja: string } }[] = [
+export const STILL_IMAGE_PURPOSES: readonly { id: PurposeId; name: { en: string; ja: string }; description: { en: string; ja: string } }[] = [
   { id: 'standard', name: { en: 'Standard', ja: '標準' }, description: { en: 'General purpose', ja: '一般的な使用' } },
   { id: 'profile', name: { en: 'Profile Picture', ja: 'プロフィール画像' }, description: { en: 'Square image for profile', ja: 'プロフィール用正方形画像' } },
   { id: 'thumbnail', name: { en: 'Thumbnail', ja: 'サムネイル' }, description: { en: 'Square thumbnail for images', ja: '画像用サムネイル' } },
