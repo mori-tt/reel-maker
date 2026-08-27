@@ -3,6 +3,11 @@ export type VideoPatternId = 'cinematic' | 'dynamic' | 'minimal' | 'album' | 'so
 export type VideoFormatId = 'reel' | 'story' | 'feed-portrait' | 'square' | 'feed-landscape' | 'shorts' | 'tiktok' | 'tiktok-square' | 'youtube-video' | 'youtube-square'
 export type VideoQualityId = 'standard' | 'high' | 'ultra'
 export type Platform = 'instagram' | 'tiktok' | 'youtube'
+export type MediaType = 'video' | 'stillImage'
+export const MEDIA_TYPES: readonly { id: MediaType; name: { en: string; ja: string } }[] = [
+  { id: 'video', name: { en: 'Video', ja: '動画' } },
+  { id: 'stillImage', name: { en: 'Still Image', ja: '静止画' } },
+] as const
 export type PurposeId = 'standard' | 'reels' | 'stories' | 'posts' | 'shorts' | 'profile' | 'thumbnail' | 'cover'
 export const PURPOSES: readonly { id: PurposeId; name: { en: string; ja: string }; description: { en: string; ja: string } }[] = [
   { id: 'standard', name: { en: 'Standard', ja: '標準' }, description: { en: 'General purpose', ja: '一般的な使用' } },
@@ -13,6 +18,12 @@ export const PURPOSES: readonly { id: PurposeId; name: { en: string; ja: string 
   { id: 'profile', name: { en: 'Profile Picture', ja: 'プロフィール画像' }, description: { en: 'Square image for profile', ja: 'プロフィール用正方形画像' } },
   { id: 'thumbnail', name: { en: 'Video Thumbnail', ja: 'サムネイル' }, description: { en: '16:9 thumbnail for videos', ja: '16:9・動画サムネイル' } },
   { id: 'cover', name: { en: 'Video Cover', ja: '動画カバー' }, description: { en: '16:9 cover image for videos', ja: '16:9・動画カバー画像' } },
+] as const
+export const StillImagePURPOSES: readonly { id: PurposeId; name: { en: string; ja: string }; description: { en: string; ja: string } }[] = [
+  { id: 'standard', name: { en: 'Standard', ja: '標準' }, description: { en: 'General purpose', ja: '一般的な使用' } },
+  { id: 'profile', name: { en: 'Profile Picture', ja: 'プロフィール画像' }, description: { en: 'Square image for profile', ja: 'プロフィール用正方形画像' } },
+  { id: 'thumbnail', name: { en: 'Thumbnail', ja: 'サムネイル' }, description: { en: 'Square thumbnail for images', ja: '画像用サムネイル' } },
+  { id: 'cover', name: { en: 'Cover Photo', ja: 'カバー写真' }, description: { en: 'Wide cover photo for images', ja: '画像用wideカバー写真' } },
 ] as const
 export type TransitionType = 'cut' | 'dissolve' | 'slide-left' | 'slide-right' | 'slide-up' | 'slide-down' | 'wipe-left' | 'wipe-right' | 'zoom-in' | 'zoom-out' | 'fade-black'
 export type ColorAdjustments = { brightness: number; contrast: number; saturation: number; hueRotate: number; temperature: number }
