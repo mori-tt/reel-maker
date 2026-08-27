@@ -10,10 +10,10 @@ export type SubtitleConfig = { text: string; fontSize: number; fontFamily: strin
 export const PLATFORMS: readonly Platform[] = ['instagram', 'tiktok', 'youtube']
 
 export type LocalizedText = { en: string; ja: string }
-export type PatternDecoration = 'letterbox' | 'vignette' | 'frame' | 'badge' | 'none' | 'grain' | 'scanlines' | 'polaroid' | 'tracking' | 'glow' | 'halftone' | 'blockframe' | 'duotone' | 'gridline' | 'slash' | 'shimmer' | 'stamp' | 'sparkle'
+export type PatternDecoration = 'letterbox' | 'vignette' | 'frame' | 'badge' | 'none' | 'grain' | 'scanlines' | 'polaroid' | 'tracking' | 'glow' | 'halftone' | 'blockframe' | 'duotone' | 'gridline' | 'slash' | 'shimmer' | 'stamp' | 'sparkle' | 'chromatic' | 'anaglyph' | 'crossprocess' | 'fisheye'
 // How each pattern renders its title/CTA text, beyond just color - see the text-drawing block in
 // App.tsx's drawFrame. 'default' is centered, bold, soft shadow (the original, only) look.
-export type TextStyle = 'default' | 'minimal' | 'left' | 'upper' | 'glow' | 'outline' | 'elegant'
+export type TextStyle = 'default' | 'minimal' | 'left' | 'upper' | 'glow' | 'outline' | 'elegant' | 'retro' | 'shadow' | 'gradient'
 export type VideoPattern = { id: VideoPatternId; name: LocalizedText; description: LocalizedText; accent: string; copyDirection: LocalizedText; filter: string; decoration: PatternDecoration; textStyle: TextStyle }
 // recommendedMaxSeconds is soft guidance only (shown as a hint, never enforced) - platforms revise
 // their actual limits often enough that hard-coding one as a strict cap would go stale and could
@@ -45,6 +45,10 @@ export const VIDEO_PATTERNS: readonly VideoPattern[] = [
   { id: 'luxury', name: { en: 'Luxury', ja: 'ラグジュアリー' }, description: { en: 'Gold shimmer frame + refined, minimal motion', ja: 'ゴールドの光る枠＋上品で控えめな動き' }, accent: '#d4af37', copyDirection: { en: 'Use refined, confident, aspirational language.', ja: '上品で自信に満ちた、憧れを誘う言葉を使う' }, filter: 'contrast(1.08) saturate(.95) brightness(1.02) sepia(.05)', decoration: 'shimmer', textStyle: 'elegant' },
   { id: 'travel', name: { en: 'Travel', ja: 'トラベル' }, description: { en: 'Postcard stamp + dashed border + exploring pan', ja: 'ポストカード風スタンプ＋点線の枠＋探検するようなパン' }, accent: '#5aa9e6', copyDirection: { en: 'Use adventurous, wanderlust language.', ja: '冒険心をくすぐる、旅への憧れを誘う言葉を使う' }, filter: 'contrast(1.05) saturate(1.15) brightness(1.03)', decoration: 'stamp', textStyle: 'left' },
   { id: 'kawaii', name: { en: 'Kawaii', ja: 'カワイイ' }, description: { en: 'Candy color pop + sparkle + bouncy zoom', ja: 'キャンディカラー＋きらめき＋弾むようなズーム' }, accent: '#ff8fc7', copyDirection: { en: 'Use cute, playful, exclamatory language.', ja: 'かわいく元気な、勢いのある言葉を使う' }, filter: 'saturate(1.3) brightness(1.1) contrast(1.05)', decoration: 'sparkle', textStyle: 'upper' },
+  { id: 'chromatic', name: { en: 'Chromatic', ja: 'クロマチック' }, description: { en: 'Color shift effect with vignette', ja: '色相シフト＋ビネット' }, accent: '#ff00ff', copyDirection: { en: 'Use bold, color-forward language.', ja: '大胆な色使いの言葉を使う' }, filter: 'hue-rotate(90deg) saturate(1.5) brightness(1.1)', decoration: 'chromatic', textStyle: 'gradient' },
+  { id: 'anaglyph', name: { en: 'Anaglyph', ja: 'アナグリフ' }, description: { en: '3D red-cyan effect with glasses hint', ja: '3Dレッドシアン効果＋メガネヒント' }, accent: '#ff0000', copyDirection: { en: 'Use playful language about the 3D effect.', ja: '3D効果について遊び心のある言葉を使う' }, filter: 'brightness(1.2) contrast(1.1)', decoration: 'anaglyph', textStyle: 'shadow' },
+  { id: 'crossprocess', name: { en: 'Cross Process', ja: 'クロスプロセス' }, description: { en: 'Experimental color shift with heavy saturation', ja: '実験的な色相シフトで強調彩度' }, accent: '#00ffff', copyDirection: { en: 'Use experimental, edgy language.', ja: '実験的でエッジの効いた言葉を使う' }, filter: 'saturate(1.4) hue-rotate(30deg) brightness(1.15)', decoration: 'crossprocess', textStyle: 'retro' },
+  { id: 'fisheye', name: { en: 'Fisheye', ja: 'フィッシュアイ' }, description: { en: 'Rounded corners + distorted edge + warm tone', ja: '丸み corners＋歪んだ端＋暖色調' }, accent: '#ff6b6b', copyDirection: { en: 'Use fun, exaggerated language.', ja: '楽しく過剰な言葉を使う' }, filter: 'saturate(1.2) brightness(1.05) hue-rotate(5deg)', decoration: 'fisheye', textStyle: 'minimal' },
 ] as const
 
 export const VIDEO_FORMATS: readonly VideoFormat[] = [

@@ -30,7 +30,7 @@ const clamp = (value: number, min: number, max: number) => Math.max(min, Math.mi
 // chasing a dark average. Both stay capped overall so an already well-exposed photo gets little to
 // no change. Pure function over raw pixel data (not a live image), so the math is unit-testable
 // without a real canvas/DOM.
-export function computeAutoEnhanceFilter(pixels: Uint8ClampedArray | number[]): string {
+export function computeAutoEnhanceFilter(pixels: Uint8ClampedArray | number[], options: { brightness?: number; contrast?: number; saturation?: number; highlights?: number; shadows?: number; clarity?: number } = {}): string {
   let min = 255, max = 0, sum = 0
   const count = pixels.length / 4
   if (count <= 0) return 'brightness(1) contrast(1) saturate(1.05)'
@@ -42,9 +42,20 @@ export function computeAutoEnhanceFilter(pixels: Uint8ClampedArray | number[]): 
   }
   const average = sum / count
   const range = Math.max(1, max - min)
-  const brightness = clamp(128 / Math.max(1, average), .7, Math.min(2, 255 / Math.max(1, max)))
-  const contrast = clamp(220 / (range * brightness), 1, 1.35)
-  return `brightness(${brightness.toFixed(2)}) contrast(${contrast.toFixed(2)}) saturate(1.08)`
+  const adj = options.brightness ?? clamp(128 / Math.max(1, average), .7, Math.min(2, 255 / Math.max(1, max)))
+  const con = options.contrast ?? clamp(220 / (range * adj), 1, 1.35)
+  const sat = options.saturation ?? 1.08
+  const highlights = options.highlights ?? 1
+  const shadows = options.shadows ?? 1
+  const clarity = options.clarity ?? 1
+  const parts: string[] = []
+  if (adj !== 1) parts.push(`brightness(${adj.toFixed(2)})`)
+  if (con !== 1) parts.push(`contrast(${con.toFixed(2)})`)
+  if (sat !== 1) parts.push(`saturate(${sat.toFixed(2)})`)
+  if (highlights !== 1) parts.push(`highlight(${highlights.toFixed(2)})`)
+  if (shadows !== 1) parts.push(`shadow(${shadows.toFixed(2)})`)
+  if (clarity !== 1) parts.push(`clarity(${clarity.toFixed(2)})`)
+  return parts.join(' ') || 'none'
 }
 
 // Downsamples the image onto a small offscreen canvas (analysis doesn't need full resolution) and

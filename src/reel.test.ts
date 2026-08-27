@@ -30,9 +30,9 @@ describe('reel timeline', () => {
     expect(nextFrameDelayMs(0, 1, 30, 100)).toBe(0)
   })
 
-  it('provides all eighteen selectable video patterns', () => {
-    expect(VIDEO_PATTERNS.map(pattern => pattern.id)).toEqual(['cinematic', 'dynamic', 'minimal', 'album', 'social', 'noir', 'neon', 'polaroid', 'vhs', 'glow', 'comic', 'editorial', 'pastel', 'retrowave', 'street', 'luxury', 'travel', 'kawaii'])
-    expect(new Set(VIDEO_PATTERNS.map(pattern => pattern.accent)).size).toBe(18)
+  it('provides all twenty-two selectable video patterns', () => {
+    expect(VIDEO_PATTERNS.map(pattern => pattern.id)).toEqual(['cinematic', 'dynamic', 'minimal', 'album', 'social', 'noir', 'neon', 'polaroid', 'vhs', 'glow', 'comic', 'editorial', 'pastel', 'retrowave', 'street', 'luxury', 'travel', 'kawaii', 'chromatic', 'anaglyph', 'crossprocess', 'fisheye'])
+    expect(new Set(VIDEO_PATTERNS.map(pattern => pattern.accent)).size).toBe(22)
     expect(getVideoPattern('social').name).toEqual({ en: 'Social trend', ja: 'SNSトレンド' })
     expect(getVideoPattern('neon').name).toEqual({ en: 'Neon', ja: 'ネオン' })
     expect(getVideoPattern('editorial').name).toEqual({ en: 'Editorial', ja: 'エディトリアル' })
@@ -44,7 +44,7 @@ describe('reel timeline', () => {
     const newPatterns = ['pastel', 'retrowave', 'street', 'luxury', 'travel', 'kawaii'] as const
     const decorations = newPatterns.map(id => getVideoPattern(id).decoration)
     expect(new Set(decorations).size).toBe(newPatterns.length)
-    const validTextStyles = ['default', 'minimal', 'left', 'upper', 'glow', 'outline', 'elegant']
+    const validTextStyles = ['default', 'minimal', 'left', 'upper', 'glow', 'outline', 'elegant', 'retro', 'shadow', 'gradient']
     for (const id of newPatterns) expect(validTextStyles).toContain(getVideoPattern(id).textStyle)
   })
 
@@ -117,13 +117,13 @@ describe('reel timeline', () => {
   })
 
   it('gives every pattern its own color grade, signature decoration, and text treatment', () => {
-    expect(new Set(VIDEO_PATTERNS.map(pattern => pattern.filter)).size).toBe(18)
-    expect(VIDEO_PATTERNS.map(pattern => pattern.decoration)).toEqual(['letterbox', 'none', 'vignette', 'frame', 'badge', 'grain', 'scanlines', 'polaroid', 'tracking', 'glow', 'halftone', 'blockframe', 'duotone', 'gridline', 'slash', 'shimmer', 'stamp', 'sparkle'])
-    expect(VIDEO_PATTERNS.map(pattern => pattern.textStyle)).toEqual(['default', 'default', 'minimal', 'left', 'upper', 'default', 'glow', 'default', 'default', 'minimal', 'upper', 'left', 'minimal', 'glow', 'outline', 'elegant', 'left', 'upper'])
+    expect(new Set(VIDEO_PATTERNS.map(pattern => pattern.filter)).size).toBe(22)
+    expect(VIDEO_PATTERNS.map(pattern => pattern.decoration)).toEqual(['letterbox', 'none', 'vignette', 'frame', 'badge', 'grain', 'scanlines', 'polaroid', 'tracking', 'glow', 'halftone', 'blockframe', 'duotone', 'gridline', 'slash', 'shimmer', 'stamp', 'sparkle', 'chromatic', 'anaglyph', 'crossprocess', 'fisheye'])
+    expect(VIDEO_PATTERNS.map(pattern => pattern.textStyle)).toEqual(['default', 'default', 'minimal', 'left', 'upper', 'default', 'glow', 'default', 'default', 'minimal', 'upper', 'left', 'minimal', 'glow', 'outline', 'elegant', 'left', 'upper', 'gradient', 'shadow', 'retro', 'minimal'])
     // Every decoration and text style is exercised by at least one pattern - no dead enum values.
-    const decorations: string[] = ['letterbox', 'vignette', 'frame', 'badge', 'none', 'grain', 'scanlines', 'polaroid', 'tracking', 'glow', 'halftone', 'blockframe', 'duotone', 'gridline', 'slash', 'shimmer', 'stamp', 'sparkle']
+    const decorations: string[] = ['letterbox', 'vignette', 'frame', 'badge', 'none', 'grain', 'scanlines', 'polaroid', 'tracking', 'glow', 'halftone', 'blockframe', 'duotone', 'gridline', 'slash', 'shimmer', 'stamp', 'sparkle', 'chromatic', 'anaglyph', 'crossprocess', 'fisheye']
     for (const decoration of decorations) expect(VIDEO_PATTERNS.some(pattern => pattern.decoration === decoration)).toBe(true)
-    const textStyles: string[] = ['default', 'minimal', 'left', 'upper', 'glow', 'outline', 'elegant']
+    const textStyles: string[] = ['default', 'minimal', 'left', 'upper', 'glow', 'outline', 'elegant', 'retro', 'shadow', 'gradient']
     for (const textStyle of textStyles) expect(VIDEO_PATTERNS.some(pattern => pattern.textStyle === textStyle)).toBe(true)
   })
 
