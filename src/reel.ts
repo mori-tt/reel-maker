@@ -3,6 +3,17 @@ export type VideoPatternId = 'cinematic' | 'dynamic' | 'minimal' | 'album' | 'so
 export type VideoFormatId = 'reel' | 'story' | 'feed-portrait' | 'square' | 'feed-landscape' | 'shorts' | 'tiktok' | 'tiktok-square' | 'youtube-video' | 'youtube-square'
 export type VideoQualityId = 'standard' | 'high' | 'ultra'
 export type Platform = 'instagram' | 'tiktok' | 'youtube'
+export type PurposeId = 'standard' | 'reels' | 'stories' | 'posts' | 'shorts' | 'profile' | 'thumbnail' | 'cover'
+export const PURPOSES: readonly { id: PurposeId; name: { en: string; ja: string }; description: { en: string; ja: string } }[] = [
+  { id: 'standard', name: { en: 'Standard', ja: '標準' }, description: { en: 'General purpose', ja: '一般的な使用' } },
+  { id: 'reels', name: { en: 'Instagram Reels', ja: 'Instagramリール' }, description: { en: '9:16 vertical video for Reels', ja: '9:16縦型動画・リール用' } },
+  { id: 'stories', name: { en: 'Instagram Stories', ja: 'Instagramストーリー' }, description: { en: '9:16 vertical video for Stories', ja: '9:16縦型動画・ストーリー用' } },
+  { id: 'posts', name: { en: 'Feed Post', ja: 'フィード投稿' }, description: { en: '1:1 or 4:5 image/video for feed', ja: '1:1または4:5・フィード用画像/動画' } },
+  { id: 'shorts', name: { en: 'YouTube Shorts', ja: 'YouTube Shorts' }, description: { en: '9:16 vertical video for Shorts', ja: '9:16縦型動画・Shorts用' } },
+  { id: 'profile', name: { en: 'Profile Picture', ja: 'プロフィール画像' }, description: { en: 'Square image for profile', ja: 'プロフィール用正方形画像' } },
+  { id: 'thumbnail', name: { en: 'Video Thumbnail', ja: 'サムネイル' }, description: { en: '16:9 thumbnail for videos', ja: '16:9・動画サムネイル' } },
+  { id: 'cover', name: { en: 'Video Cover', ja: '動画カバー' }, description: { en: '16:9 cover image for videos', ja: '16:9・動画カバー画像' } },
+] as const
 export type TransitionType = 'cut' | 'dissolve' | 'slide-left' | 'slide-right' | 'slide-up' | 'slide-down' | 'wipe-left' | 'wipe-right' | 'zoom-in' | 'zoom-out' | 'fade-black'
 export type ColorAdjustments = { brightness: number; contrast: number; saturation: number; hueRotate: number; temperature: number }
 export type BrandColors = { accent: string | null; textColor: string | null; bgColor: string | null }
